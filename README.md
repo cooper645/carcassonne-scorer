@@ -18,6 +18,7 @@
 - **Final Scoring:** combines tracks _(Meeple & Messenger)_, adds goods and gold bonuses and shows the winner.
 - Undo, a game log, and automatic saving in your browser
 
+
 ## Supported expansions
 
 | Expansion | What the app does |
@@ -63,7 +64,8 @@ You're welcome to fork this repo and run your own copy, or simply pull this and 
 
 If you don't have a photo, delete `board.jpg` or leave it out and the app uses its built-in drawn board.
 
-Please only upload images you have the right to use.
+> [!IMPORTANT]
+> When uploading your own scoring board photo, you must keep the exact file name `board.jpg`. Please only upload images you have the right to use.
 
 ## Hosting
 
@@ -104,6 +106,10 @@ docker compose up -d --build
 ## Notes
 
 - Game data and board calibration live in your browser's local storage, so they are not shared between devices. Everyone should watch one screen.
-- Clearing site data in your browser will delete a game in progress and the saved calibration.
-- To share one calibration across devices, click **Copy positions** and paste the result into `BAKED_SPOTS` near the top of the script in `index.html`.
-- Scoring rules are based on the Big Box rulebook and may not match your rules. I believe this is the C3 rules.
+- Scoring rules are based on the Big Box rulebook (C3 edition) and may differ slightly from older versions.
+
+> [!WARNING]
+> Clearing your browser's site data will delete active games and wipe your saved board calibration.
+
+> [!TIP]
+> To share a single calibration across multiple devices, click **Copy positions** and paste the output into `BAKED_SPOTS` near the top of the script in `index.html`.
