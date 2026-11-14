@@ -50,6 +50,20 @@ A web-based score tracker for Carcassonne with the Big Box expansions. It runs e
 - **Robbers:** steal half the points scored (rounded up) on the track they sit on, then return to their owner.
 - **Dark spaces:** with Messengers on, landing on a multiple of 5 on your own turn means drawing a Message tile.
 
+## Fork and host your own
+
+You're welcome to fork this repo and run your own copy.
+
+1. Click **Fork** at the top right of this repo.
+2. In your fork, go to **Settings → Pages**, set the source to the `main` branch and `/ (root)` folder, then click **Save**.
+3. After a minute or two your copy is live at `https://YOUR-USERNAME.github.io/carcassonne-scorer/`.
+4. Replace `board.jpg` with a top-down photo of **your own** scoring board (keep the file name `board.jpg`). Use **Add file → Upload files** and drag it in.
+5. Open your site, start a game and click **📍 Calibrate photo board** to mark the 50 spaces on your photo.
+
+If you don't have a photo, delete `board.jpg` or leave it out and the app uses its built-in drawn board.
+
+Please only upload images you have the right to use.
+
 ## Hosting
 
 ### Option A: GitHub Pages (no server needed)
