@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Carcassonne Scorer — Messengers & Robbers</title>
+<title>Carcassonne Scorer — Big Box</title>
 <style>
   :root {
     --bg: #1e2229;
@@ -18,7 +18,7 @@
   }
   * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
   body { margin: 0; padding: 16px; background: var(--bg); color: var(--text); }
-  .container { max-width: 900px; margin: 0 auto; }
+  .container { max-width: 960px; margin: 0 auto; }
   header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
   h1 { margin: 0; font-size: 1.4rem; }
   button { background: var(--accent); color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
@@ -27,7 +27,9 @@
   button.danger { background: var(--robber); }
   button.warning { background: var(--dark-space); color: #111; }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.mini { padding: 1px 8px; font-size: 0.95rem; line-height: 1.3; background: var(--border); }
   input, select { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px 10px; border-radius: 6px; font-size: 0.95rem; }
+  input[type=checkbox] { padding: 0; }
 
   .banner { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600; display: none; justify-content: space-between; align-items: center; gap: 10px; }
   .banner.show { display: flex; }
@@ -35,14 +37,14 @@
   .banner.robbery { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--robber); color: #fca5a5; }
 
   .setup-box, .score-panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-bottom: 20px; }
   .player-card { background: var(--card); border: 2px solid var(--border); border-radius: 10px; padding: 14px; position: relative; }
   .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
   .player-name { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
   .dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,0.3); flex-shrink: 0; }
   .total-badge { font-size: 1.3rem; font-weight: 800; }
 
-  .piece-row { display: flex; justify-content: space-between; align-items: center; background: var(--bg); padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; }
+  .piece-row { display: flex; justify-content: space-between; align-items: center; background: var(--bg); padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; gap: 8px; flex-wrap: wrap; }
   .piece-info { display: flex; flex-direction: column; }
   .piece-label { font-size: 0.8rem; color: var(--muted); }
   .piece-score { font-size: 1.15rem; font-weight: 700; }
@@ -58,6 +60,36 @@
   .log { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; max-height: 200px; overflow-y: auto; font-size: 0.85rem; color: var(--muted); }
   .log div { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
   .hidden { display: none !important; }
+
+  /* ---------- Expansions picker ---------- */
+  .exp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .exp-item { display: flex; gap: 8px; align-items: flex-start; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; cursor: pointer; font-size: 0.9rem; }
+  .exp-item input { margin-top: 3px; }
+  .exp-item small { color: var(--muted); }
+
+  /* ---------- Breakdown ---------- */
+  .cat-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--bg); margin: 8px 0 6px; }
+  .cat-bar span { display: block; height: 100%; }
+  .cat-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+  .chip { font-size: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 2px 8px; white-space: nowrap; }
+  .chip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+  .goods { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .good { display: inline-flex; align-items: center; gap: 4px; }
+  .good b { min-width: 16px; text-align: center; }
+
+  .helper { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-top: 12px; }
+  .helper label { display: inline-flex; align-items: center; gap: 5px; font-size: 0.85rem; }
+  .helper input[type=number] { width: 70px; }
+  .helper-result { margin-top: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.95rem; }
+  .helper-result small { color: var(--muted); }
+
+  .results { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 20px; overflow-x: auto; }
+  .results h3 { margin: 0 0 8px; font-size: 0.95rem; color: var(--muted); }
+  .results table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+  .results th, .results td { padding: 6px 8px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07); white-space: nowrap; }
+  .results th:first-child, .results td:first-child { text-align: left; }
+  .results td.tot { font-weight: 800; font-size: 1rem; }
+  .results tr.win td { background: rgba(245,158,11,0.12); }
 
   /* ---------- Drawn board ---------- */
   .board {
@@ -110,9 +142,10 @@
 <body>
 <div class="container">
   <header>
-    <h1>🏰 Carcassonne Scorer <span style="font-size:0.85rem; color:var(--muted); font-weight:normal;">(Messengers &amp; Robbers)</span></h1>
-    <div style="display:flex; gap:8px;">
+    <h1>🏰 Carcassonne Scorer <span style="font-size:0.85rem; color:var(--muted); font-weight:normal;">(Big Box)</span></h1>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button id="btnUndo" class="secondary" onclick="undo()" disabled>↩ Undo</button>
+      <button id="btnExp" class="secondary hidden" onclick="toggleExpPanel()">⚙ Expansions</button>
       <button id="btnFinalPhase" class="warning" onclick="toggleFinalScoring()">🏁 Final Scoring</button>
       <button class="danger" onclick="resetGame()">Reset</button>
     </div>
@@ -129,6 +162,7 @@
 
   <div id="setupView" class="setup-box">
     <h2 style="margin-top:0; font-size:1.1rem;">New Game Setup</h2>
+    <h3 style="font-size:0.95rem; color:var(--muted); margin:0 0 8px;">1. Players</h3>
     <div class="controls-row" style="margin-bottom:12px;">
       <input type="text" id="newPlayerName" placeholder="Player name..." onkeypress="if(event.key==='Enter') addPlayer()">
       <select id="newPlayerColor">
@@ -141,36 +175,61 @@
       </select>
       <button onclick="addPlayer()">+ Add Player</button>
     </div>
-    <div id="setupPlayerList" style="margin-bottom:14px; display:flex; flex-wrap:wrap; gap:8px;"></div>
-    <button onclick="startGame()" style="background:var(--success); width:100%; padding:10px;">Start Game</button>
+    <div id="setupPlayerList" style="margin-bottom:18px; display:flex; flex-wrap:wrap; gap:8px;"></div>
+    <h3 style="font-size:0.95rem; color:var(--muted); margin:0 0 8px;">2. Expansions in this game</h3>
+    <div id="expPickerSetup"></div>
+    <button onclick="startGame()" style="background:var(--success); width:100%; padding:10px; margin-top:6px;">Start Game</button>
   </div>
 
   <div id="gameView" class="hidden">
+    <div id="expPanel" class="setup-box hidden">
+      <h3 style="margin:0 0 10px; font-size:1rem;">Expansions in this game</h3>
+      <div id="expPickerGame"></div>
+    </div>
+
     <div id="phaseNotice" class="hidden" style="background:rgba(16,185,129,0.15); border:1px solid var(--success); padding:10px 14px; border-radius:8px; margin-bottom:14px; color:#6ee7b7; font-size:0.9rem;">
-      <strong>Final Scoring Mode:</strong> Messengers and Meeples are combined. Dark-space message triggers are disabled. Robbers still trigger if attached!
+      <strong>Final Scoring Mode:</strong> tracks are combined and trade-goods / gold bonuses have been added. Enter any remaining end-game points (fields, unfinished features) with the right source. Dark-space draws are off; Robbers still trigger if attached.
     </div>
 
     <div class="score-panel">
       <div class="controls-row">
         <select id="scorePlayer"></select>
-        <select id="scorePiece">
-          <option value="meeple">Move Meeple</option>
-          <option value="messenger">Move Messenger</option>
-        </select>
-        <input type="number" id="scorePoints" placeholder="Points" style="width:95px;" min="1">
-        <label style="display:flex; align-items:center; gap:5px; font-size:0.85rem; cursor:pointer;" title="Uncheck if scoring on an opponent's turn (no dark-space message draw)">
+        <select id="scoreCat" title="Where did the points come from?"></select>
+        <select id="scorePiece"></select>
+        <input type="number" id="scorePoints" placeholder="Points" style="width:95px;">
+        <label id="activeTurnWrap" style="display:flex; align-items:center; gap:5px; font-size:0.85rem; cursor:pointer;" title="Uncheck if scoring on an opponent's turn (no dark-space message draw)">
           <input type="checkbox" id="isActiveTurn" checked> Active Turn
         </label>
         <button onclick="applyScore()">Add Points</button>
+        <button class="secondary" onclick="toggleHelper()">🧮 Score helper</button>
       </div>
+
+      <div id="helper" class="helper hidden">
+        <div class="controls-row">
+          <select id="hFeature" onchange="helperUpdate()"></select>
+          <label id="hTilesWrap"><span id="hTilesLabel">Tiles</span> <input type="number" id="hTiles" min="0" value="2" oninput="helperUpdate()"></label>
+          <label id="hPennantsWrap">Pennants <input type="number" id="hPennants" min="0" value="0" oninput="helperUpdate()"></label>
+          <label id="hCitiesWrap">Completed cities <input type="number" id="hCities" min="0" value="1" oninput="helperUpdate()"></label>
+          <label id="hCompleteWrap"><input type="checkbox" id="hComplete" checked onchange="helperUpdate()"> Completed</label>
+          <label id="hCathWrap"><input type="checkbox" id="hCath" onchange="helperUpdate()"> Cathedral</label>
+          <label id="hInnWrap"><input type="checkbox" id="hInn" onchange="helperUpdate()"> Inn</label>
+          <label id="hPigWrap"><input type="checkbox" id="hPig" onchange="helperUpdate()"> Pig (4 per city)</label>
+        </div>
+        <div class="helper-result">
+          <span>= <strong id="hResult">0</strong> pts</span>
+          <small id="hExplain"></small>
+          <button onclick="useHelper()">Use this value</button>
+        </div>
+      </div>
+
       <div class="quick-btns">
         <span style="font-size:0.8rem; color:var(--muted); align-self:center;">Quick:</span>
-        <button onclick="quickScore(2)">+2 (Road/Message)</button>
+        <button onclick="quickScore(2)">+2</button>
         <button onclick="quickScore(3)">+3</button>
-        <button onclick="quickScore(4)">+4 (City/Shield)</button>
+        <button onclick="quickScore(4)">+4</button>
         <button onclick="quickScore(6)">+6</button>
         <button onclick="quickScore(8)">+8</button>
-        <button onclick="quickScore(9)">+9 (Cloister)</button>
+        <button onclick="quickScore(9)">+9</button>
       </div>
     </div>
 
@@ -201,6 +260,8 @@
 
     <div id="playerGrid" class="grid"></div>
 
+    <div id="results" class="results"></div>
+
     <div id="robberModal" class="setup-box hidden" style="border-color: var(--robber);">
       <h3 style="margin-top:0; font-size:1rem; color:#fca5a5;">Place <span id="robberOwnerName"></span>'s Robber</h3>
       <div class="controls-row">
@@ -216,17 +277,62 @@
 </div>
 
 <script>
-  let state = { started: false, finalScoring: false, players: [], logs: [] };
-  let historyStack = [];
-  let activeRobberPlacerId = null;
+  const $ = id => document.getElementById(id);
+
+  /* ---------- Static data ---------- */
+
+  const EXPANSIONS = [
+    { id: 'river',     name: 'The River',           note: 'Setup only. Nothing to score.' },
+    { id: 'abbot',     name: 'The Abbot',           note: 'Adds the Garden scoring source.' },
+    { id: 'inns',      name: 'Inns & Cathedrals',   note: 'Inn and Cathedral options in the Score helper.' },
+    { id: 'traders',   name: 'Traders & Builders',  note: 'Tracks Cloth, Barrels and Wheat (10-pt end bonus each). Pig in Score helper.' },
+    { id: 'flying',    name: 'The Flying Machines', note: 'No scoring. Nothing tracked.' },
+    { id: 'messengers',name: 'The Messengers',      note: 'Second (Messenger) track and dark-space Message draws.' },
+    { id: 'ferries',   name: 'The Ferries',         note: 'No scoring. Nothing tracked.' },
+    { id: 'gold',      name: 'The Gold Mines',      note: 'Tracks gold per player and adds it at Final Scoring.' },
+    { id: 'magician',  name: 'Magician & Witch',    note: 'Adds a +/- Magician/Witch adjustment source.' },
+    { id: 'robbers',   name: 'The Robbers',         note: 'Robbers steal half of the next points scored on a track.' },
+    { id: 'crop',      name: 'The Crop Circles',    note: 'No scoring. Nothing tracked.' }
+  ];
+
+  const CATS = {
+    city:      { label: 'City',          icon: '🏰', color: '#f97316' },
+    road:      { label: 'Road',          icon: '🛣️', color: '#a78bfa' },
+    field:     { label: 'Field',         icon: '🌾', color: '#84cc16' },
+    monastery: { label: 'Monastery',     icon: '⛪', color: '#38bdf8' },
+    garden:    { label: 'Garden',        icon: '🌷', color: '#34d399' },
+    message:   { label: 'Message',       icon: '📜', color: '#fbbf24' },
+    goods:     { label: 'Trade goods',   icon: '📦', color: '#f472b6' },
+    gold:      { label: 'Gold',          icon: '🪙', color: '#facc15' },
+    magic:     { label: 'Magician/Witch',icon: '🧙', color: '#c084fc' },
+    stolen:    { label: 'Robbery',       icon: '🦹', color: '#ef4444' },
+    other:     { label: 'Other',         icon: '➕', color: '#9aa5b1' }
+  };
+  const CAT_ORDER = ['city', 'road', 'field', 'monastery', 'garden', 'message', 'goods', 'gold', 'magic', 'stolen', 'other'];
+
+  const GOODS = [
+    { id: 'cloth',  label: 'Cloth',  icon: '🧵' },
+    { id: 'barrel', label: 'Barrel', icon: '🛢️' },
+    { id: 'wheat',  label: 'Wheat',  icon: '🌾' }
+  ];
+  const GOODS_BONUS = 10;
 
   const TRACK_LEN = 50;
   const BOARD_W = 15;
   const BOARD_H = 12;
 
   // Optional: paste the output of "Copy positions" here (replacing null) so every device shares the calibration.
-  const BAKED_SPOTS = [[86.6,80],[72.2,80.6],[63.5,80.6],[54.6,81],[46.1,81.1],[38.1,81.8],[30.1,81.6],[21,83.8],[12.8,79.1],[12.1,65.8],[11.5,53.8],[11.9,42.6],[11.4,31.1],[13.1,20.9],[19.9,16.4],[26.1,13.7],[32.9,12.9],[39.8,13.2],[46.2,12.4],[52.9,13.2],[59.5,13.2],[65.9,12.4],[73.1,11.9],[79.1,12],[86.2,12.7],[88.5,21.2],[87.3,29.9],[80,31.7],[73.6,31.6],[67.7,32.2],[61.8,33.4],[55.1,33.6],[49.4,33.4],[42.7,33.2],[37.2,33.6],[31.6,33.6],[25.7,37.2],[23.6,44.1],[26.7,52.9],[32.6,55.4],[38.4,55.3],[44.2,54.1],[50.7,52.6],[57.2,52.3],[63.1,52.1],[69.6,52.4],[76.2,52.1],[82.6,49.8],[87.9,53.6],[87.8,62.8]];
+  const BAKED_SPOTS = null;
 
+  /* ---------- State ---------- */
+
+  function freshState() {
+    return { started: false, finalScoring: false, goldMode: 'flat', expansions: {}, players: [], logs: [] };
+  }
+
+  let state = freshState();
+  let historyStack = [];
+  let activeRobberPlacerId = null;
   let calibrating = false;
   let calibSpots = [];
   let boardMode = null;
@@ -236,10 +342,37 @@
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
+  function emptyCats() {
+    const c = {};
+    CAT_ORDER.forEach(k => c[k] = 0);
+    return c;
+  }
+
+  function normalizeState(s) {
+    const base = freshState();
+    s = Object.assign(base, s || {});
+    // Saves from the earlier version had no expansion list but used Messengers + Robbers.
+    if (!s.expansions || typeof s.expansions !== 'object') s.expansions = { messengers: true, robbers: true };
+    if (s.goldMode !== 'triangular') s.goldMode = 'flat';
+    s.players = (s.players || []).map(p => {
+      p.meeple = p.meeple || 0;
+      p.messenger = p.messenger || 0;
+      p.robberTarget = p.robberTarget || null;
+      p.cats = Object.assign(emptyCats(), p.cats || {});
+      p.goods = Object.assign({ cloth: 0, barrel: 0, wheat: 0 }, p.goods || {});
+      p.gold = p.gold || 0;
+      return p;
+    });
+    s.logs = s.logs || [];
+    return s;
+  }
+
   try {
     const saved = localStorage.getItem('carcassonne_mr_state');
-    if (saved) state = JSON.parse(saved);
-  } catch (e) {}
+    if (saved) state = normalizeState(JSON.parse(saved));
+  } catch (e) { state = freshState(); }
+
+  function exp(id) { return !!(state.expansions && state.expansions[id]); }
 
   function validSpots(a) {
     return Array.isArray(a) && a.length === TRACK_LEN &&
@@ -263,23 +396,27 @@
 
   function pushHistory() {
     historyStack.push(JSON.stringify(state));
-    if (historyStack.length > 30) historyStack.shift();
-    document.getElementById('btnUndo').disabled = false;
+    if (historyStack.length > 40) historyStack.shift();
+    $('btnUndo').disabled = false;
   }
 
   function undo() {
     if (!historyStack.length) return;
-    state = JSON.parse(historyStack.pop());
-    document.getElementById('btnUndo').disabled = historyStack.length === 0;
+    state = normalizeState(JSON.parse(historyStack.pop()));
+    $('btnUndo').disabled = historyStack.length === 0;
     hideBanner('bannerMessage');
     hideBanner('bannerRobbery');
     saveState();
     render();
   }
 
+  function log(msg) { state.logs.unshift(msg); }
+
+  /* ---------- Setup ---------- */
+
   function addPlayer() {
-    const nameInput = document.getElementById('newPlayerName');
-    const colorInput = document.getElementById('newPlayerColor');
+    const nameInput = $('newPlayerName');
+    const colorInput = $('newPlayerColor');
     const name = nameInput.value.trim();
     if (!name) return;
     state.players.push({
@@ -288,7 +425,10 @@
       color: colorInput.value,
       meeple: 0,
       messenger: 0,
-      robberTarget: null
+      robberTarget: null,
+      cats: emptyCats(),
+      goods: { cloth: 0, barrel: 0, wheat: 0 },
+      gold: 0
     });
     nameInput.value = '';
     if (colorInput.selectedIndex < colorInput.options.length - 1) colorInput.selectedIndex++;
@@ -308,7 +448,9 @@
       return;
     }
     state.started = true;
-    state.logs.unshift('Game started with ' + state.players.map(p => p.name).join(', ') + '.');
+    const on = EXPANSIONS.filter(e => exp(e.id)).map(e => e.name);
+    log('Game started with ' + state.players.map(p => p.name).join(', ') + '.');
+    log('Expansions: ' + (on.length ? on.join(', ') : 'base game only') + '.');
     saveState();
     render();
   }
@@ -316,28 +458,94 @@
   function resetGame() {
     if (!confirm('Reset the entire game and clear all scores? (Your board calibration is kept.)')) return;
     try { localStorage.removeItem('carcassonne_mr_state'); } catch (e) {}
-    state = { started: false, finalScoring: false, players: [], logs: [] };
+    state = freshState();
     historyStack = [];
-    document.getElementById('btnUndo').disabled = true;
+    $('btnUndo').disabled = true;
     hideBanner('bannerMessage');
     hideBanner('bannerRobbery');
     closeRobberModal();
+    $('expPanel').classList.add('hidden');
+    $('helper').classList.add('hidden');
     calibrating = false;
     calibSpots = [];
     render();
   }
 
+  /* ---------- Expansions picker ---------- */
+
+  function expPickerHTML() {
+    let h = '<div class="exp-grid">' + EXPANSIONS.map(e =>
+      '<label class="exp-item"><input type="checkbox" ' + (exp(e.id) ? 'checked ' : '') +
+      'onchange="toggleExpansion(\'' + e.id + '\', this.checked)">' +
+      '<span><strong>' + esc(e.name) + '</strong><br><small>' + esc(e.note) + '</small></span></label>'
+    ).join('') + '</div>';
+    h += '<div class="controls-row" style="margin-bottom:10px;">' +
+      '<button class="secondary" onclick="setAllExpansions(true)">Select all</button>' +
+      '<button class="secondary" onclick="setAllExpansions(false)">Clear all</button>';
+    if (exp('gold')) {
+      h += '<label style="font-size:0.85rem; display:inline-flex; gap:6px; align-items:center;">Gold scoring ' +
+        '<select onchange="setGoldMode(this.value)">' +
+        '<option value="flat"' + (state.goldMode === 'flat' ? ' selected' : '') + '>1 point per gold</option>' +
+        '<option value="triangular"' + (state.goldMode === 'triangular' ? ' selected' : '') + '>Rising (1, 3, 6, 10, 15…)</option>' +
+        '</select></label>';
+    }
+    h += '</div>';
+    return h;
+  }
+
+  function toggleExpansion(id, on) {
+    state.expansions[id] = !!on;
+    if (id === 'messengers' && !on) {
+      state.players.forEach(p => { if (p.robberTarget && p.robberTarget.piece === 'messenger') p.robberTarget.piece = 'meeple'; });
+    }
+    if (state.started) log((on ? 'Enabled ' : 'Disabled ') + EXPANSIONS.find(e => e.id === id).name + '.');
+    saveState();
+    render();
+  }
+
+  function setAllExpansions(on) {
+    EXPANSIONS.forEach(e => state.expansions[e.id] = on);
+    if (!on) state.players.forEach(p => { if (p.robberTarget) p.robberTarget.piece = 'meeple'; });
+    saveState();
+    render();
+  }
+
+  function setGoldMode(m) {
+    state.goldMode = m === 'triangular' ? 'triangular' : 'flat';
+    saveState();
+    render();
+  }
+
+  function toggleExpPanel() { $('expPanel').classList.toggle('hidden'); }
+
+  /* ---------- Scoring ---------- */
+
+  function availableCats() {
+    const c = ['city', 'road', 'field', 'monastery'];
+    if (exp('abbot')) c.push('garden');
+    if (exp('messengers')) c.push('message');
+    if (exp('magician')) c.push('magic');
+    c.push('other');
+    return c;
+  }
+
   function quickScore(pts) {
-    document.getElementById('scorePoints').value = pts;
+    $('scorePoints').value = pts;
     applyScore();
   }
 
   function applyScore() {
-    const playerId = document.getElementById('scorePlayer').value;
-    const piece = state.finalScoring ? 'meeple' : document.getElementById('scorePiece').value;
-    const points = parseInt(document.getElementById('scorePoints').value, 10);
-    const isActiveTurn = document.getElementById('isActiveTurn').checked;
-    if (!playerId || isNaN(points) || points <= 0) return;
+    const playerId = $('scorePlayer').value;
+    const cat = $('scoreCat').value || 'other';
+    const twoTracks = exp('messengers') && !state.finalScoring;
+    const piece = twoTracks ? $('scorePiece').value : 'meeple';
+    const points = parseInt($('scorePoints').value, 10);
+    const isActiveTurn = $('isActiveTurn').checked;
+    if (!playerId || isNaN(points) || points === 0) return;
+    if (points < 0 && cat !== 'magic' && cat !== 'other') {
+      alert('Negative points are only allowed for the Magician/Witch or Other source.');
+      return;
+    }
 
     pushHistory();
     hideBanner('bannerMessage');
@@ -345,42 +553,183 @@
 
     const scorer = state.players.find(p => p.id === playerId);
     const oldScore = scorer[piece];
-    const newScore = oldScore + points;
+    const newScore = Math.max(0, oldScore + points);
+    const delta = newScore - oldScore;
 
-    const attachedRobbers = state.players.filter(
-      p => p.robberTarget && p.robberTarget.playerId === scorer.id && p.robberTarget.piece === piece
-    );
-
-    if (attachedRobbers.length > 0) {
-      const stolenPoints = Math.ceil(points / 2);
-      const robberyMessages = [];
-      attachedRobbers.forEach(thief => {
-        thief.meeple += stolenPoints;
-        thief.robberTarget = null;
-        robberyMessages.push(thief.name + ' stole ' + stolenPoints + ' pts (+Meeple) & recovered their Robber!');
-        state.logs.unshift('🦹 ' + thief.name + "'s robber stole " + stolenPoints + ' pts from ' + scorer.name + "'s " + piece + '!');
-      });
-      showBanner('bannerRobbery', robberyMessages.join(' | '));
+    if (delta > 0 && exp('robbers')) {
+      const attachedRobbers = state.players.filter(
+        p => p.robberTarget && p.robberTarget.playerId === scorer.id && p.robberTarget.piece === piece
+      );
+      if (attachedRobbers.length > 0) {
+        const stolenPoints = Math.ceil(delta / 2);
+        const msgs = [];
+        attachedRobbers.forEach(thief => {
+          thief.meeple += stolenPoints;
+          thief.cats.stolen += stolenPoints;
+          thief.robberTarget = null;
+          msgs.push(thief.name + ' stole ' + stolenPoints + ' pts & recovered their Robber!');
+          log('🦹 ' + thief.name + "'s robber stole " + stolenPoints + ' pts from ' + scorer.name + "'s " + piece + '!');
+        });
+        showBanner('bannerRobbery', msgs.join(' | '));
+      }
     }
 
     scorer[piece] = newScore;
+    scorer.cats[cat] += delta;
 
-    const pieceLabel = state.finalScoring ? 'Total' : (piece === 'meeple' ? 'Meeple' : 'Messenger');
-    state.logs.unshift(scorer.name + ' scored +' + points + ' on ' + pieceLabel + ' (' + oldScore + ' → ' + newScore + ').');
+    const pieceLabel = state.finalScoring ? 'Total' : (twoTracks ? (piece === 'meeple' ? 'Meeple' : 'Messenger') : 'Score');
+    log(scorer.name + ' ' + (delta >= 0 ? '+' : '') + delta + ' ' + CATS[cat].label + ' on ' + pieceLabel + ' (' + oldScore + ' → ' + newScore + ').');
 
-    if (!state.finalScoring && isActiveTurn && newScore % 5 === 0) {
+    if (twoTracks && isActiveTurn && delta > 0 && newScore % 5 === 0) {
       showBanner('bannerMessage', '📜 DARK SPACE (' + newScore + ')! ' + scorer.name + ' draws a Message tile!');
-      state.logs.unshift('📜 ' + scorer.name + ' landed on Dark Space ' + newScore + ' and triggered a Message draw.');
+      log('📜 ' + scorer.name + ' landed on Dark Space ' + newScore + ' and triggered a Message draw.');
     }
 
-    document.getElementById('scorePoints').value = '';
+    $('scorePoints').value = '';
     saveState();
     render();
   }
 
+  /* ---------- Score helper ---------- */
+
+  function toggleHelper() {
+    $('helper').classList.toggle('hidden');
+    helperRefresh();
+  }
+
+  function helperRefresh() {
+    const sel = $('hFeature');
+    const prev = sel.value;
+    const opts = [['city', 'City'], ['road', 'Road'], ['monastery', 'Monastery']];
+    if (exp('abbot')) opts.push(['garden', 'Garden']);
+    opts.push(['field', 'Field (farmers)']);
+    sel.innerHTML = opts.map(o => '<option value="' + o[0] + '">' + o[1] + '</option>').join('');
+    if (opts.some(o => o[0] === prev)) sel.value = prev;
+    helperUpdate();
+  }
+
+  function helperCalc() {
+    const f = $('hFeature').value;
+    const num = id => Math.max(0, parseInt($(id).value, 10) || 0);
+    const tiles = num('hTiles');
+    const pen = num('hPennants');
+    const cities = num('hCities');
+    const complete = $('hComplete').checked;
+    const cath = exp('inns') && $('hCath').checked;
+    const inn = exp('inns') && $('hInn').checked;
+    const pig = exp('traders') && $('hPig').checked;
+    let pts = 0, why = '';
+
+    if (f === 'city') {
+      const n = tiles + pen;
+      const per = complete ? (cath ? 3 : 2) : (cath ? 0 : 1);
+      pts = n * per;
+      why = n + ' tiles+pennants × ' + per + (complete ? ' (completed' : ' (unfinished') + (cath ? ', cathedral)' : ')');
+    } else if (f === 'road') {
+      const per = complete ? (inn ? 2 : 1) : (inn ? 0 : 1);
+      pts = tiles * per;
+      why = tiles + ' tiles × ' + per + (complete ? ' (completed' : ' (unfinished') + (inn ? ', inn)' : ')');
+    } else if (f === 'monastery' || f === 'garden') {
+      pts = Math.min(tiles, 9);
+      why = Math.min(tiles, 9) + ' tiles including the ' + f + ' (max 9)';
+    } else if (f === 'field') {
+      const per = pig ? 4 : 3;
+      pts = cities * per;
+      why = cities + ' completed cities × ' + per;
+    }
+    return { f, pts, why };
+  }
+
+  function helperUpdate() {
+    const f = $('hFeature').value;
+    const show = (id, on) => $(id).classList.toggle('hidden', !on);
+    show('hTilesWrap', f !== 'field');
+    show('hPennantsWrap', f === 'city');
+    show('hCitiesWrap', f === 'field');
+    show('hCompleteWrap', f === 'city' || f === 'road');
+    show('hCathWrap', f === 'city' && exp('inns'));
+    show('hInnWrap', f === 'road' && exp('inns'));
+    show('hPigWrap', f === 'field' && exp('traders'));
+    $('hTilesLabel').textContent = (f === 'monastery' || f === 'garden') ? 'Tiles (incl. centre)' : 'Tiles';
+    const r = helperCalc();
+    $('hResult').textContent = r.pts;
+    $('hExplain').textContent = r.why;
+  }
+
+  function useHelper() {
+    const r = helperCalc();
+    $('scoreCat').value = r.f;
+    $('scorePoints').value = r.pts;
+  }
+
+  /* ---------- Goods & gold ---------- */
+
+  function adjGood(pid, g, d) {
+    if (state.finalScoring) return;
+    const p = state.players.find(x => x.id === pid);
+    if (!p) return;
+    const nv = Math.max(0, p.goods[g] + d);
+    if (nv === p.goods[g]) return;
+    pushHistory();
+    p.goods[g] = nv;
+    log(p.name + ' ' + (d > 0 ? '+' : '−') + '1 ' + GOODS.find(x => x.id === g).label + ' (now ' + nv + ').');
+    saveState();
+    render();
+  }
+
+  function adjGold(pid, d) {
+    if (state.finalScoring) return;
+    const p = state.players.find(x => x.id === pid);
+    if (!p) return;
+    const nv = Math.max(0, p.gold + d);
+    if (nv === p.gold) return;
+    pushHistory();
+    p.gold = nv;
+    log(p.name + ' ' + (d > 0 ? '+' : '−') + '1 Gold (now ' + nv + ').');
+    saveState();
+    render();
+  }
+
+  function goldPoints(n) {
+    return state.goldMode === 'triangular' ? (n * (n + 1)) / 2 : n;
+  }
+
+  function computeEndBonuses() {
+    const res = {};
+    state.players.forEach(p => res[p.id] = { goods: 0, gold: 0 });
+    const lines = [];
+    if (exp('traders')) {
+      GOODS.forEach(g => {
+        const max = Math.max(0, ...state.players.map(p => p.goods[g.id]));
+        if (max > 0) {
+          const winners = state.players.filter(p => p.goods[g.id] === max);
+          winners.forEach(p => res[p.id].goods += GOODS_BONUS);
+          lines.push(g.label + ' (' + max + '): ' + winners.map(w => w.name).join(', ') + ' +' + GOODS_BONUS + ' each');
+        }
+      });
+    }
+    if (exp('gold')) {
+      state.players.forEach(p => {
+        const v = goldPoints(p.gold);
+        if (v > 0) {
+          res[p.id].gold = v;
+          lines.push(p.name + ': ' + p.gold + ' gold = +' + v);
+        }
+      });
+    }
+    return { res, lines };
+  }
+
+  /* ---------- Final scoring ---------- */
+
   function toggleFinalScoring() {
     if (state.finalScoring) return;
-    if (!confirm("Enter Final Scoring? This combines each player's Meeple and Messenger scores into one total and disables Message draws.")) return;
+    const bonus = computeEndBonuses();
+    let msg = "Enter Final Scoring?\n\nThis combines each player's tracks into one total and turns off Message draws.";
+    if (bonus.lines.length) msg += '\n\nThese end-game bonuses will be added:\n• ' + bonus.lines.join('\n• ');
+    else if (exp('traders') || exp('gold')) msg += '\n\nNo trade-goods or gold bonuses to add.';
+    if (!confirm(msg)) return;
+
     pushHistory();
     state.finalScoring = true;
     state.players.forEach(p => {
@@ -392,17 +741,33 @@
       p.meeple += p.messenger;
       p.messenger = 0;
     });
-    state.logs.unshift('🏁 Entered Final Scoring: Meeple and Messenger scores combined.');
+    log('🏁 Entered Final Scoring: tracks combined.');
+    state.players.forEach(p => {
+      const b = bonus.res[p.id];
+      if (b.goods) {
+        p.meeple += b.goods;
+        p.cats.goods += b.goods;
+        log('📦 ' + p.name + ' +' + b.goods + ' trade goods bonus.');
+      }
+      if (b.gold) {
+        p.meeple += b.gold;
+        p.cats.gold += b.gold;
+        log('🪙 ' + p.name + ' +' + b.gold + ' for ' + p.gold + ' gold.');
+      }
+    });
     saveState();
     render();
   }
 
+  /* ---------- Robbers ---------- */
+
   function openRobberModal(ownerId) {
     activeRobberPlacerId = ownerId;
     const owner = state.players.find(p => p.id === ownerId);
-    document.getElementById('robberOwnerName').textContent = owner.name;
-    const select = document.getElementById('robberTargetSelect');
+    $('robberOwnerName').textContent = owner.name;
+    const select = $('robberTargetSelect');
     select.innerHTML = '';
+    const twoTracks = exp('messengers') && !state.finalScoring;
     state.players.forEach(target => {
       if (target.id === ownerId) return;
       const add = (value, label) => {
@@ -411,31 +776,31 @@
         opt.textContent = label;
         select.appendChild(opt);
       };
-      if (state.finalScoring) {
+      if (!twoTracks) {
         add(target.id + ':meeple', target.name + ' (Score: ' + target.meeple + ')');
       } else {
         add(target.id + ':meeple', target.name + ' — Meeple (at ' + target.meeple + ')');
         add(target.id + ':messenger', target.name + ' — Messenger (at ' + target.messenger + ')');
       }
     });
-    document.getElementById('robberModal').classList.remove('hidden');
+    $('robberModal').classList.remove('hidden');
   }
 
   function closeRobberModal() {
     activeRobberPlacerId = null;
-    document.getElementById('robberModal').classList.add('hidden');
+    $('robberModal').classList.add('hidden');
   }
 
   function confirmPlaceRobber() {
     if (!activeRobberPlacerId) return;
-    const val = document.getElementById('robberTargetSelect').value;
+    const val = $('robberTargetSelect').value;
     if (!val) return;
     pushHistory();
     const [targetId, piece] = val.split(':');
     const owner = state.players.find(p => p.id === activeRobberPlacerId);
     const target = state.players.find(p => p.id === targetId);
     owner.robberTarget = { playerId: targetId, piece };
-    state.logs.unshift('🦹 ' + owner.name + ' placed their Robber on ' + target.name + "'s " + piece + ' (at ' + target[piece] + ').');
+    log('🦹 ' + owner.name + ' placed their Robber on ' + target.name + "'s " + piece + ' (at ' + target[piece] + ').');
     closeRobberModal();
     saveState();
     render();
@@ -445,18 +810,18 @@
     pushHistory();
     const owner = state.players.find(p => p.id === ownerId);
     owner.robberTarget = null;
-    state.logs.unshift('↩ ' + owner.name + ' returned their Robber to supply.');
+    log('↩ ' + owner.name + ' returned their Robber to supply.');
     saveState();
     render();
   }
 
   function showBanner(id, text) {
-    document.getElementById(id + 'Text').textContent = text;
-    document.getElementById(id).classList.add('show');
+    $(id + 'Text').textContent = text;
+    $(id).classList.add('show');
   }
 
   function hideBanner(id) {
-    document.getElementById(id).classList.remove('show');
+    $(id).classList.remove('show');
   }
 
   /* ---------- Token graphics ---------- */
@@ -477,9 +842,9 @@
            '<rect x="8" y="4.5" width="8" height="2" fill="#fff" stroke="none"/></svg>';
   }
 
-  // Collect every token as {space, svg, title}
   function collectTokens() {
     const out = [];
+    const twoTracks = exp('messengers') && !state.finalScoring;
     state.players.forEach(p => {
       const lapsM = Math.floor(p.meeple / TRACK_LEN);
       out.push({
@@ -487,7 +852,7 @@
         svg: meepleSVG(p.color),
         title: p.name + ' Meeple: ' + p.meeple + (lapsM ? ' (lap ' + (lapsM + 1) + ')' : '')
       });
-      if (!state.finalScoring) {
+      if (twoTracks) {
         const lapsG = Math.floor(p.messenger / TRACK_LEN);
         out.push({
           space: p.messenger % TRACK_LEN,
@@ -496,26 +861,29 @@
         });
       }
     });
-    state.players.forEach(thief => {
-      if (!thief.robberTarget) return;
-      const victim = state.players.find(v => v.id === thief.robberTarget.playerId);
-      if (!victim) return;
-      out.push({
-        space: victim[thief.robberTarget.piece] % TRACK_LEN,
-        svg: robberSVG(thief.color),
-        title: thief.name + "'s Robber on " + victim.name + "'s " + thief.robberTarget.piece
+    if (exp('robbers')) {
+      state.players.forEach(thief => {
+        if (!thief.robberTarget) return;
+        const victim = state.players.find(v => v.id === thief.robberTarget.playerId);
+        if (!victim) return;
+        out.push({
+          space: victim[thief.robberTarget.piece] % TRACK_LEN,
+          svg: robberSVG(thief.color),
+          title: thief.name + "'s Robber on " + victim.name + "'s " + thief.robberTarget.piece
+        });
       });
-    });
+    }
     return out;
   }
 
   function legendHTML() {
+    const twoTracks = exp('messengers') && !state.finalScoring;
     const keys =
       '<div class="legend-keys">' +
       '<span><span class="tok">' + meepleSVG('#9aa5b1') + '</span> Meeple</span>' +
-      (state.finalScoring ? '' : '<span><span class="tok">' + messengerSVG('#9aa5b1') + '</span> Messenger</span>') +
-      '<span><span class="tok">' + robberSVG('#9aa5b1') + '</span> Robber</span>' +
-      '<span style="color:var(--dark-space);">■ Dark space (every 5)</span>' +
+      (twoTracks ? '<span><span class="tok">' + messengerSVG('#9aa5b1') + '</span> Messenger</span>' : '') +
+      (exp('robbers') ? '<span><span class="tok">' + robberSVG('#9aa5b1') + '</span> Robber</span>' : '') +
+      (exp('messengers') ? '<span style="color:var(--dark-space);">■ Dark space (every 5)</span>' : '') +
       '</div>';
 
     const rows = state.players.map(p => {
@@ -523,9 +891,9 @@
       const lapG = Math.floor(p.messenger / TRACK_LEN);
       const lapText = n => n > 0 ? ' <span class="lap">+' + (n * TRACK_LEN) + '</span>' : '';
       let line = '<span class="dot" style="background:' + p.color + '"></span><strong>' + esc(p.name) + '</strong> ' +
-        '<span>Meeple ' + p.meeple + lapText(lapM) + '</span>';
-      if (!state.finalScoring) line += '<span>· Messenger ' + p.messenger + lapText(lapG) + '</span>';
-      if (p.robberTarget) {
+        '<span>' + (twoTracks ? 'Meeple ' : 'Score ') + p.meeple + lapText(lapM) + '</span>';
+      if (twoTracks) line += '<span>· Messenger ' + p.messenger + lapText(lapG) + '</span>';
+      if (exp('robbers') && p.robberTarget) {
         const v = state.players.find(x => x.id === p.robberTarget.playerId);
         line += '<span>· 🦹 on ' + esc(v ? v.name : '?') + '</span>';
       }
@@ -554,13 +922,13 @@
     });
 
     let html = coords.map((xy, i) => {
-      const cls = 'cell' + (i % 5 === 0 ? ' dark' : '') + (i === 0 ? ' start' : '');
+      const cls = 'cell' + (exp('messengers') && i % 5 === 0 ? ' dark' : '') + (i === 0 ? ' start' : '');
       return '<div class="' + cls + '" style="grid-column:' + xy[0] + ';grid-row:' + xy[1] + ';">' +
         '<span class="cn">' + i + '</span><div class="toks">' + cells[i].join('') + '</div></div>';
     }).join('');
 
     html += '<div class="board-center"><h4>Scoring Track (50 spaces, clockwise from top-left)</h4>' + legendHTML() + '</div>';
-    document.getElementById('board').innerHTML = html;
+    $('board').innerHTML = html;
   }
 
   /* ---------- Photo board + calibration ---------- */
@@ -592,7 +960,7 @@
     calibrating = true;
     calibSpots = [];
     renderBoardArea();
-    document.getElementById('photoBoard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    $('photoBoard').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function onCalibClick(e) {
@@ -642,13 +1010,13 @@
 
   function boardImgError() {
     imgFailed = true;
-    document.getElementById('imgError').classList.remove('hidden');
+    $('imgError').classList.remove('hidden');
   }
 
   function renderPhotoBoard() {
-    const wrap = document.getElementById('photoBoard');
-    const layer = document.getElementById('photoTokens');
-    const marks = document.getElementById('calibMarks');
+    const wrap = $('photoBoard');
+    const layer = $('photoTokens');
+    const marks = $('calibMarks');
     wrap.classList.toggle('calibrating', calibrating);
 
     if (calibrating) {
@@ -657,7 +1025,7 @@
         '<span class="cmark' + (i === 0 ? ' first' : '') + '" style="left:' + p[0] + '%;top:' + p[1] + '%;">' + i + '</span>'
       ).join('');
       const n = calibSpots.length;
-      document.getElementById('calibText').innerHTML = n === 0
+      $('calibText').innerHTML = n === 0
         ? '📍 Click the centre of the <strong>START space</strong> (space 0).'
         : '📍 Click the centre of space <strong>' + n + '</strong> of 49 &nbsp;(' + n + ' of 50 placed)';
       return;
@@ -685,18 +1053,18 @@
       });
     });
     layer.innerHTML = html;
-    document.getElementById('photoLegend').innerHTML = legendHTML();
+    $('photoLegend').innerHTML = legendHTML();
   }
 
   function renderBoardArea() {
     const mode = currentMode();
-    document.getElementById('photoBoard').classList.toggle('hidden', mode !== 'photo');
-    document.getElementById('imgError').classList.toggle('hidden', !(mode === 'photo' && imgFailed));
-    document.getElementById('board').classList.toggle('hidden', mode !== 'drawn');
-    document.getElementById('photoLegend').classList.toggle('hidden', mode !== 'photo' || calibrating || !spots);
-    document.getElementById('calibBar').classList.toggle('hidden', !calibrating);
+    $('photoBoard').classList.toggle('hidden', mode !== 'photo');
+    $('imgError').classList.toggle('hidden', !(mode === 'photo' && imgFailed));
+    $('board').classList.toggle('hidden', mode !== 'drawn');
+    $('photoLegend').classList.toggle('hidden', mode !== 'photo' || calibrating || !spots);
+    $('calibBar').classList.toggle('hidden', !calibrating);
 
-    const toggle = document.getElementById('btnToggleBoard');
+    const toggle = $('btnToggleBoard');
     toggle.textContent = mode === 'photo' ? 'Show drawn board' : 'Show photo board';
     toggle.disabled = calibrating;
 
@@ -708,82 +1076,170 @@
     if (state.started && currentMode() === 'photo') renderPhotoBoard();
   });
 
+  /* ---------- Player cards + results ---------- */
+
+  function playerTotal(p) { return p.meeple + p.messenger; }
+
+  function catBreakdownHTML(p) {
+    const total = playerTotal(p);
+    const unassigned = total - CAT_ORDER.reduce((s, k) => s + p.cats[k], 0);
+    const parts = CAT_ORDER.filter(k => p.cats[k] > 0).map(k => ({ k, v: p.cats[k], c: CATS[k].color, l: CATS[k].icon + ' ' + CATS[k].label }));
+    if (unassigned > 0) parts.push({ k: 'un', v: unassigned, c: '#4b5563', l: 'Unassigned' });
+    const sum = parts.reduce((s, x) => s + x.v, 0);
+    if (!sum) return '<div class="cat-chips"><span class="chip" style="color:var(--muted);">No points yet</span></div>';
+    const bar = '<div class="cat-bar">' + parts.map(x => '<span title="' + esc(x.l) + ' ' + x.v + '" style="width:' + (x.v / sum * 100).toFixed(1) + '%;background:' + x.c + '"></span>').join('') + '</div>';
+    const chips = '<div class="cat-chips">' + parts.map(x => '<span class="chip"><i style="background:' + x.c + '"></i>' + esc(x.l) + ' ' + x.v + '</span>').join('') + '</div>';
+    return bar + chips;
+  }
+
+  function playerCardHTML(p) {
+    const twoTracks = exp('messengers') && !state.finalScoring;
+    const total = playerTotal(p);
+    const robbersOn = piece => exp('robbers')
+      ? state.players.filter(t => t.robberTarget && t.robberTarget.playerId === p.id && t.robberTarget.piece === piece)
+      : [];
+    const robberTags = piece => robbersOn(piece).map(t => '<span class="robber-tag">🦹 ' + esc(t.name) + "'s Robber here</span>").join('');
+    const dark = v => (exp('messengers') && !state.finalScoring && v % 5 === 0) ? '<span class="dark-tag">DARK</span>' : '';
+
+    let robberStatusHTML = '';
+    if (exp('robbers')) {
+      if (p.robberTarget) {
+        const victim = state.players.find(v => v.id === p.robberTarget.playerId);
+        const targetLabel = twoTracks ? p.robberTarget.piece : 'Score';
+        robberStatusHTML =
+          '<div class="robber-status"><span style="color:#fca5a5;">🦹 Robbing <strong>' + esc(victim ? victim.name : '?') + '</strong> (' + targetLabel + ')</span>' +
+          '<button class="secondary" style="padding:3px 8px; font-size:0.75rem;" onclick="recallRobber(\'' + p.id + '\')">Recall</button></div>';
+      } else {
+        robberStatusHTML =
+          '<div class="robber-status"><span style="color:var(--muted);">🦹 Robber in supply</span>' +
+          '<button class="danger" style="padding:3px 8px; font-size:0.75rem;" onclick="openRobberModal(\'' + p.id + '\')">Place Robber</button></div>';
+      }
+    }
+
+    const meepleLabel = state.finalScoring ? 'Combined Score' : (twoTracks ? 'Meeple Track' : 'Score Track');
+    const meepleRow =
+      '<div class="piece-row"><div class="piece-info">' +
+      '<span class="piece-label">' + meepleLabel + '</span>' +
+      '<div><span class="piece-score">' + p.meeple + '</span>' + dark(p.meeple) + '</div>' +
+      robberTags('meeple') + '</div></div>';
+
+    const messengerRow = !twoTracks ? '' :
+      '<div class="piece-row"><div class="piece-info">' +
+      '<span class="piece-label">Messenger Track</span>' +
+      '<div><span class="piece-score">' + p.messenger + '</span>' + dark(p.messenger) + '</div>' +
+      robberTags('messenger') + '</div></div>';
+
+    let goodsRow = '';
+    if (exp('traders')) {
+      goodsRow = '<div class="piece-row"><span class="piece-label">Trade goods</span><div class="goods">' +
+        GOODS.map(g =>
+          '<span class="good" title="' + g.label + '">' + g.icon +
+          '<button class="mini" ' + (state.finalScoring ? 'disabled ' : '') + 'onclick="adjGood(\'' + p.id + '\',\'' + g.id + '\',-1)">−</button>' +
+          '<b>' + p.goods[g.id] + '</b>' +
+          '<button class="mini" ' + (state.finalScoring ? 'disabled ' : '') + 'onclick="adjGood(\'' + p.id + '\',\'' + g.id + '\',1)">+</button></span>'
+        ).join('') + '</div></div>';
+    }
+
+    let goldRow = '';
+    if (exp('gold')) {
+      goldRow = '<div class="piece-row"><span class="piece-label">🪙 Gold <small>(worth ' + goldPoints(p.gold) + ' at end)</small></span><span class="good">' +
+        '<button class="mini" ' + (state.finalScoring ? 'disabled ' : '') + 'onclick="adjGold(\'' + p.id + '\',-1)">−</button>' +
+        '<b>' + p.gold + '</b>' +
+        '<button class="mini" ' + (state.finalScoring ? 'disabled ' : '') + 'onclick="adjGold(\'' + p.id + '\',1)">+</button></span></div>';
+    }
+
+    return '<div class="player-card" style="border-color:' + p.color + '">' +
+      '<div class="player-header">' +
+      '<div class="player-name"><span class="dot" style="background:' + p.color + '"></span>' + esc(p.name) + '</div>' +
+      '<div class="total-badge">' + total + '</div></div>' +
+      meepleRow + messengerRow + catBreakdownHTML(p) + goodsRow + goldRow + robberStatusHTML +
+      '</div>';
+  }
+
+  function resultsHTML() {
+    const rows = state.players.map(p => {
+      const total = playerTotal(p);
+      const cats = {};
+      CAT_ORDER.forEach(k => cats[k] = p.cats[k]);
+      cats.un = total - CAT_ORDER.reduce((s, k) => s + p.cats[k], 0);
+      return { p, total, cats };
+    }).sort((a, b) => b.total - a.total);
+
+    const cols = CAT_ORDER.filter(k => rows.some(r => r.cats[k] !== 0));
+    const showUn = rows.some(r => r.cats.un !== 0);
+    const top = rows.length ? rows[0].total : 0;
+
+    let h = '<h3>' + (state.finalScoring ? '🏆 Results' : 'Points by source') + '</h3><table><thead><tr><th>Player</th><th>Total</th>' +
+      cols.map(k => '<th title="' + CATS[k].label + '">' + CATS[k].icon + ' ' + CATS[k].label + '</th>').join('') +
+      (showUn ? '<th>Unassigned</th>' : '') + '</tr></thead><tbody>';
+    rows.forEach(r => {
+      const win = state.finalScoring && r.total === top && top > 0;
+      h += '<tr class="' + (win ? 'win' : '') + '"><td><span class="dot" style="background:' + r.p.color + '"></span> ' + (win ? '🏆 ' : '') + esc(r.p.name) + '</td>' +
+        '<td class="tot">' + r.total + '</td>' +
+        cols.map(k => '<td>' + (r.cats[k] || '–') + '</td>').join('') +
+        (showUn ? '<td>' + (r.cats.un || '–') + '</td>' : '') + '</tr>';
+    });
+    return h + '</tbody></table>';
+  }
+
   /* ---------- Main render ---------- */
 
   function render() {
-    const setupView = document.getElementById('setupView');
-    const gameView = document.getElementById('gameView');
+    const setupView = $('setupView');
+    const gameView = $('gameView');
 
     if (!state.started) {
       setupView.classList.remove('hidden');
       gameView.classList.add('hidden');
-      document.getElementById('btnFinalPhase').classList.add('hidden');
-      document.getElementById('setupPlayerList').innerHTML = state.players.map(p =>
+      $('btnFinalPhase').classList.add('hidden');
+      $('btnExp').classList.add('hidden');
+      $('setupPlayerList').innerHTML = state.players.map(p =>
         '<div style="background:var(--bg); padding:6px 12px; border-radius:20px; border:1px solid var(--border); display:flex; align-items:center; gap:8px;">' +
         '<span class="dot" style="background:' + p.color + '"></span>' +
         '<span>' + esc(p.name) + '</span>' +
         '<span style="cursor:pointer; color:var(--robber); font-weight:bold;" onclick="removeSetupPlayer(\'' + p.id + '\')">×</span>' +
         '</div>'
       ).join('');
+      $('expPickerSetup').innerHTML = expPickerHTML();
       return;
     }
 
     setupView.classList.add('hidden');
     gameView.classList.remove('hidden');
-    document.getElementById('btnFinalPhase').classList.remove('hidden');
-    document.getElementById('btnFinalPhase').disabled = state.finalScoring;
-    document.getElementById('scorePiece').classList.toggle('hidden', state.finalScoring);
-    document.getElementById('phaseNotice').classList.toggle('hidden', !state.finalScoring);
+    $('btnFinalPhase').classList.remove('hidden');
+    $('btnFinalPhase').disabled = state.finalScoring;
+    $('btnExp').classList.remove('hidden');
+    $('phaseNotice').classList.toggle('hidden', !state.finalScoring);
+    $('expPickerGame').innerHTML = expPickerHTML();
 
-    const playerSelect = document.getElementById('scorePlayer');
-    const prevSelected = playerSelect.value;
+    // Score panel controls
+    const twoTracks = exp('messengers') && !state.finalScoring;
+    $('scorePiece').classList.toggle('hidden', !twoTracks);
+    $('activeTurnWrap').classList.toggle('hidden', !twoTracks);
+
+    const playerSelect = $('scorePlayer');
+    const prevPlayer = playerSelect.value;
     playerSelect.innerHTML = state.players.map(p => '<option value="' + p.id + '">' + esc(p.name) + '</option>').join('');
-    if (prevSelected && state.players.some(p => p.id === prevSelected)) playerSelect.value = prevSelected;
+    if (prevPlayer && state.players.some(p => p.id === prevPlayer)) playerSelect.value = prevPlayer;
+
+    const pieceSelect = $('scorePiece');
+    const prevPiece = pieceSelect.value;
+    pieceSelect.innerHTML = '<option value="meeple">Move Meeple</option><option value="messenger">Move Messenger</option>';
+    if (prevPiece === 'messenger' || prevPiece === 'meeple') pieceSelect.value = prevPiece;
+
+    const catSelect = $('scoreCat');
+    const prevCat = catSelect.value;
+    const avail = availableCats();
+    catSelect.innerHTML = avail.map(k => '<option value="' + k + '">' + CATS[k].icon + ' ' + CATS[k].label + '</option>').join('');
+    if (avail.indexOf(prevCat) !== -1) catSelect.value = prevCat;
+
+    if (!$('helper').classList.contains('hidden')) helperRefresh();
 
     renderBoardArea();
 
-    document.getElementById('playerGrid').innerHTML = state.players.map(p => {
-      const total = p.meeple + p.messenger;
-      const robbersOn = piece => state.players.filter(t => t.robberTarget && t.robberTarget.playerId === p.id && t.robberTarget.piece === piece);
-      const robberTags = piece => robbersOn(piece).map(t => '<span class="robber-tag">🦹 ' + esc(t.name) + "'s Robber here</span>").join('');
-
-      let robberStatusHTML;
-      if (p.robberTarget) {
-        const victim = state.players.find(v => v.id === p.robberTarget.playerId);
-        const targetLabel = state.finalScoring ? 'Score' : p.robberTarget.piece;
-        robberStatusHTML =
-          '<span style="color:#fca5a5;">🦹 Robbing <strong>' + esc(victim ? victim.name : '?') + '</strong> (' + targetLabel + ')</span>' +
-          '<button class="secondary" style="padding:3px 8px; font-size:0.75rem;" onclick="recallRobber(\'' + p.id + '\')">Recall</button>';
-      } else {
-        robberStatusHTML =
-          '<span style="color:var(--muted);">🦹 Robber in supply</span>' +
-          '<button class="danger" style="padding:3px 8px; font-size:0.75rem;" onclick="openRobberModal(\'' + p.id + '\')">Place Robber</button>';
-      }
-
-      const meepleRow =
-        '<div class="piece-row"><div class="piece-info">' +
-        '<span class="piece-label">' + (state.finalScoring ? 'Combined Score' : 'Meeple Track') + '</span>' +
-        '<div><span class="piece-score">' + p.meeple + '</span>' +
-        (!state.finalScoring && p.meeple % 5 === 0 ? '<span class="dark-tag">DARK</span>' : '') + '</div>' +
-        robberTags('meeple') + '</div></div>';
-
-      const messengerRow = state.finalScoring ? '' :
-        '<div class="piece-row"><div class="piece-info">' +
-        '<span class="piece-label">Messenger Track</span>' +
-        '<div><span class="piece-score">' + p.messenger + '</span>' +
-        (p.messenger % 5 === 0 ? '<span class="dark-tag">DARK</span>' : '') + '</div>' +
-        robberTags('messenger') + '</div></div>';
-
-      return '<div class="player-card" style="border-color:' + p.color + '">' +
-        '<div class="player-header">' +
-        '<div class="player-name"><span class="dot" style="background:' + p.color + '"></span>' + esc(p.name) + '</div>' +
-        '<div class="total-badge">' + total + '</div></div>' +
-        meepleRow + messengerRow +
-        '<div class="robber-status">' + robberStatusHTML + '</div>' +
-        '</div>';
-    }).join('');
-
-    document.getElementById('gameLog').innerHTML = state.logs.map(l => '<div>' + esc(l) + '</div>').join('');
+    $('playerGrid').innerHTML = state.players.map(playerCardHTML).join('');
+    $('results').innerHTML = resultsHTML();
+    $('gameLog').innerHTML = state.logs.map(l => '<div>' + esc(l) + '</div>').join('');
   }
 
   render();
