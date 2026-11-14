@@ -1,20 +1,19 @@
 # 🏰 Carcassonne Scorer (Big Box)
-
-A web-based score tracker for Carcassonne with the Big Box expansions. It runs entirely in the browser, with no accounts, no backend and no database.
+> A web-based score tracker for Carcassonne with the Big Box expansions. It runs entirely in the browser, with no accounts, no backend and no database.
 
 **Live version:** https://cooper645.github.io/carcassonne-scorer/
 
 ## Features
 
-- **Pick your expansions** at setup (or change them mid-game), and the scoring and tracking adapt
-- **Photo scoring board:** your own `board.jpg` with meeple, messenger and robber tokens drawn on top, plus a one-time 50-space calibration
-- **Points by source:** every score is tagged City, Road, Field, Monastery, Garden, Message, Magician/Witch or Other, with a bar and chips on each player card and a results table
-- **Score helper:** works out city, road, monastery, garden and field points, including Cathedral, Inn and Pig modifiers
-- **Trade goods:** Cloth, Barrel and Wheat counters, with a 10-point end bonus for whoever holds the most of each (ties all get it)
-- **Gold:** gold bar counter, scored at the end by tier
-- **Messengers:** separate Meeple and Messenger tracks, with dark-space alerts every 5 points
-- **Robbers:** attach to an opponent's track and steal half the points (rounded up) when it next scores
-- **Final Scoring:** combines tracks, adds goods and gold bonuses and shows the winner
+- **Pick your expansions** at setup (or change them mid-game _{not recommended though}_), and the scoring and tracking adapt.
+- **Photo scoring board:** your own `board.jpg` with meeple, messenger and robber tokens drawn on top, plus a one-time 50-space calibration. This can be hidden to make using this on smaller screens easier.
+- **Points by source:** every score is tagged City, Road, Field, Monastery, Garden, Message, Magician/Witch or Other, with a bar and chips on each player card and a results table.
+- **Score helper:** works out city, road, monastery, garden and field points, including Cathedral, Inn and Pig modifiers.
+- **Trade goods:** Cloth, Barrel and Wheat counters, with a 10-point end bonus for whoever holds the most of each (ties all get it).
+- **Gold:** gold bar counter, scored at the end by tier.
+- **Messengers:** separate Meeple and Messenger tracks, with dark-space alerts every 5 points.
+- **Robbers:** attach to an opponent's track and steal half the points (rounded up) when it next scores.
+- **Final Scoring:** combines tracks _(Meeple & Messenger)_, adds goods and gold bonuses and shows the winner.
 - Undo, a game log, and automatic saving in your browser
 
 ## Supported expansions
@@ -24,13 +23,13 @@ A web-based score tracker for Carcassonne with the Big Box expansions. It runs e
 | The River | Setup only, nothing to score |
 | The Abbot | Adds the Garden scoring source |
 | Inns & Cathedrals | Inn and Cathedral options in the Score helper |
-| Traders & Builders | Cloth, Barrel and Wheat counters, end bonus, Pig in the Score helper |
+| Traders & Builders | 🧵Cloth, 🛢️Barrel and 🌾Wheat counters, end bonus, 🐷Pig in the Score helper |
 | The Flying Machines | No scoring, nothing tracked |
 | The Messengers | Second track and dark-space Message draws |
 | The Ferries | No scoring, nothing tracked |
-| The Gold Mines | Gold bar counter, added at Final Scoring |
+| The Gold Mines | 🪙Gold bar counter, added at Final Scoring |
 | Magician & Witch | Manual +/- adjustment source |
-| The Robbers | Robber placement and point stealing |
+| The Robbers | 🦹Robber placement and point stealing |
 | The Crop Circles | No scoring, nothing tracked |
 
 ## How to use
@@ -39,7 +38,7 @@ A web-based score tracker for Carcassonne with the Big Box expansions. It runs e
 2. First time only: click **📍 Calibrate photo board** and click the centre of each of the 50 spaces in order, starting with the start space.
 3. Choose a player, choose where the points came from, enter the points (or tap a quick button or use the Score helper), then click **Add Points**.
 4. Adjust Cloth, Barrels, Wheat and Gold with the − / + buttons on each player card as they are collected.
-5. Use **Place Robber** on a player card to attach a robber to an opponent's track.
+5. Use **Place Robber** on a player card to attach a robber to an opponent's track. New banner above the Game Log to select meeple to stalk (can be recalled if placed in error).
 6. At the end of the game, click **Final Scoring**. The confirmation lists the bonuses that will be added.
 7. Enter any remaining end-game points (fields, unfinished features), then check the results table.
 
@@ -52,7 +51,7 @@ A web-based score tracker for Carcassonne with the Big Box expansions. It runs e
 
 ## Fork and host your own
 
-You're welcome to fork this repo and run your own copy.
+You're welcome to fork this repo and run your own copy, or simply pull this and get the latest updates as they occur.
 
 1. Click **Fork** at the top right of this repo.
 2. In your fork, go to **Settings → Pages**, set the source to the `main` branch and `/ (root)` folder, then click **Save**.
@@ -97,10 +96,12 @@ docker compose up -d --build
 | `board.jpg` | Photo of the scoring board used as the track background |
 | `Dockerfile` | Builds a small Nginx container serving the app |
 | `docker-compose.yml` | Runs the container on port 8085 |
+| `LICENCE` | Licensing |
+| `README.md` | This ReadMe and basic instructions for use |
 
 ## Notes
 
 - Game data and board calibration live in your browser's local storage, so they are not shared between devices. Everyone should watch one screen.
 - Clearing site data in your browser will delete a game in progress and the saved calibration.
 - To share one calibration across devices, click **Copy positions** and paste the result into `BAKED_SPOTS` near the top of the script in `index.html`.
-- Scoring rules are based on the Big Box rulebook as remembered by the author and may not match the official rules exactly.
+- Scoring rules are based on the Big Box rulebook and may not match your rules. I believe this is the C3 rules.
