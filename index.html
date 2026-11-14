@@ -123,6 +123,11 @@
   /* ---------- Photo board ---------- */
   .board-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
   .board-tools button { padding: 6px 12px; font-size: 0.85rem; }
+  .board-extra { display: contents; }
+  a.btn-link { display: inline-block; background: var(--border); color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; }
+  a.btn-link:hover { opacity: 0.9; }
+  footer { margin: 24px 0 8px; text-align: center; font-size: 0.85rem; color: var(--muted); }
+  footer a { color: #93c5fd; }
   .calib-bar { background: rgba(59,130,246,0.15); border: 1px solid var(--accent); color: #93c5fd; padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; font-size: 0.9rem; }
   .calib-bar button { padding: 5px 10px; font-size: 0.8rem; }
   .photo-board { position: relative; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 10px; background: var(--card); }
@@ -147,6 +152,7 @@
       <button id="btnUndo" class="secondary" onclick="undo()" disabled>↩ Undo</button>
       <button id="btnExp" class="secondary hidden" onclick="toggleExpPanel()">⚙ Expansions</button>
       <button id="btnFinalPhase" class="warning" onclick="toggleFinalScoring()">🏁 Final Scoring</button>
+      <a class="btn-link" href="https://github.com/cooper645/carcassonne-scorer#readme" target="_blank" rel="noopener">📖 Help</a>
       <button class="danger" onclick="resetGame()">Reset</button>
     </div>
   </header>
@@ -234,9 +240,12 @@
     </div>
 
     <div class="board-tools">
-      <button class="secondary" onclick="startCalibration()">📍 Calibrate photo board</button>
-      <button id="btnToggleBoard" class="secondary" onclick="toggleBoardMode()">Show drawn board</button>
-      <button class="secondary" onclick="copySpots()">Copy positions</button>
+      <button id="btnHideBoard" class="secondary" onclick="toggleBoardVisible()">🙈 Hide board</button>
+      <span id="boardExtra" class="board-extra">
+        <button class="secondary" onclick="startCalibration()">📍 Calibrate photo board</button>
+        <button id="btnToggleBoard" class="secondary" onclick="toggleBoardMode()">Show drawn board</button>
+        <button class="secondary" onclick="copySpots()">Copy positions</button>
+      </span>
     </div>
 
     <div id="calibBar" class="calib-bar hidden">
@@ -274,6 +283,11 @@
     <h3 style="font-size:0.95rem; color:var(--muted); margin-bottom:6px;">Game Log</h3>
     <div id="gameLog" class="log"></div>
   </div>
+
+  <footer>
+    <a href="https://github.com/cooper645/carcassonne-scorer#readme" target="_blank" rel="noopener">📖 README &amp; help</a> ·
+    <a href="https://github.com/cooper645/carcassonne-scorer" target="_blank" rel="noopener">GitHub repo</a>
+  </footer>
 </div>
 
 <script>
@@ -388,7 +402,9 @@
   }
 
   let spots = loadSpots();
+  let boardHidden = false;
   try { boardMode = localStorage.getItem('carcassonne_mr_boardmode'); } catch (e) {}
+  try { boardHidden = localStorage.getItem('carcassonne_mr_boardhidden') === '1'; } catch (e) {}
 
   function saveState() {
     try { localStorage.setItem('carcassonne_mr_state', JSON.stringify(state)); } catch (e) {}
@@ -950,8 +966,21 @@
     renderBoardArea();
   }
 
+  function saveBoardHidden() {
+    try { localStorage.setItem('carcassonne_mr_boardhidden', boardHidden ? '1' : '0'); } catch (e) {}
+  }
+
+  function toggleBoardVisible() {
+    if (calibrating) return;
+    boardHidden = !boardHidden;
+    saveBoardHidden();
+    renderBoardArea();
+  }
+
   function startCalibration() {
     if (spots && !confirm('Replace your saved board positions and start again?')) return;
+    boardHidden = false;
+    saveBoardHidden();
     calibrating = true;
     calibSpots = [];
     renderBoardArea();
@@ -1053,16 +1082,23 @@
 
   function renderBoardArea() {
     const mode = currentMode();
-    $('photoBoard').classList.toggle('hidden', mode !== 'photo');
-    $('imgError').classList.toggle('hidden', !(mode === 'photo' && imgFailed));
-    $('board').classList.toggle('hidden', mode !== 'drawn');
-    $('photoLegend').classList.toggle('hidden', mode !== 'photo' || calibrating || !spots);
+    const hide = boardHidden && !calibrating;
+    $('photoBoard').classList.toggle('hidden', hide || mode !== 'photo');
+    $('imgError').classList.toggle('hidden', hide || !(mode === 'photo' && imgFailed));
+    $('board').classList.toggle('hidden', hide || mode !== 'drawn');
+    $('photoLegend').classList.toggle('hidden', hide || mode !== 'photo' || calibrating || !spots);
     $('calibBar').classList.toggle('hidden', !calibrating);
+    $('boardExtra').classList.toggle('hidden', hide);
+
+    const hideBtn = $('btnHideBoard');
+    hideBtn.textContent = hide ? '👁 Show board' : '🙈 Hide board';
+    hideBtn.disabled = calibrating;
 
     const toggle = $('btnToggleBoard');
     toggle.textContent = mode === 'photo' ? 'Show drawn board' : 'Show photo board';
     toggle.disabled = calibrating;
 
+    if (hide) return;
     if (mode === 'photo') renderPhotoBoard();
     else renderBoard();
   }
