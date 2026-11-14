@@ -1,4 +1,6 @@
 # 🏰 Carcassonne Scorer (Big Box)
+
+> [!NOTE]
 > A web-based score tracker for Carcassonne with the Big Box expansions. It runs entirely in the browser, with no accounts, no backend and no database.
 
 **Live version:** https://cooper645.github.io/carcassonne-scorer/
