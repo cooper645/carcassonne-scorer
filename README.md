@@ -100,7 +100,7 @@ docker compose up -d --build
 | `board.jpg` | Photo of the scoring board used as the track background |
 | `Dockerfile` | Builds a small Nginx container serving the app |
 | `docker-compose.yml` | Runs the container on port 8085 |
-| `LICENCE` | Licensing |
+| `LICENSE` | Licensing |
 | `README.md` | This ReadMe and basic instructions for use |
 
 ## Notes
