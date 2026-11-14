@@ -289,7 +289,7 @@
     { id: 'flying',    name: 'The Flying Machines', note: 'No scoring. Nothing tracked.' },
     { id: 'messengers',name: 'The Messengers',      note: 'Second (Messenger) track and dark-space Message draws.' },
     { id: 'ferries',   name: 'The Ferries',         note: 'No scoring. Nothing tracked.' },
-    { id: 'gold',      name: 'The Gold Mines',      note: 'Tracks gold per player and adds it at Final Scoring.' },
+    { id: 'gold',      name: 'The Gold Mines',      note: 'Tracks gold bars per player (1-3 = 1 pt each, 4-6 = 2, 7-9 = 3, 10+ = 4) and adds it at Final Scoring.' },
     { id: 'magician',  name: 'Magician & Witch',    note: 'Adds a +/- Magician/Witch adjustment source.' },
     { id: 'robbers',   name: 'The Robbers',         note: 'Robbers steal half of the next points scored on a track.' },
     { id: 'crop',      name: 'The Crop Circles',    note: 'No scoring. Nothing tracked.' }
@@ -482,13 +482,6 @@
     h += '<div class="controls-row" style="margin-bottom:10px;">' +
       '<button class="secondary" onclick="setAllExpansions(true)">Select all</button>' +
       '<button class="secondary" onclick="setAllExpansions(false)">Clear all</button>';
-    if (exp('gold')) {
-      h += '<label style="font-size:0.85rem; display:inline-flex; gap:6px; align-items:center;">Gold scoring ' +
-        '<select onchange="setGoldMode(this.value)">' +
-        '<option value="flat"' + (state.goldMode === 'flat' ? ' selected' : '') + '>1 point per gold</option>' +
-        '<option value="triangular"' + (state.goldMode === 'triangular' ? ' selected' : '') + '>Rising (1, 3, 6, 10, 15…)</option>' +
-        '</select></label>';
-    }
     h += '</div>';
     return h;
   }
@@ -506,12 +499,6 @@
   function setAllExpansions(on) {
     EXPANSIONS.forEach(e => state.expansions[e.id] = on);
     if (!on) state.players.forEach(p => { if (p.robberTarget) p.robberTarget.piece = 'meeple'; });
-    saveState();
-    render();
-  }
-
-  function setGoldMode(m) {
-    state.goldMode = m === 'triangular' ? 'triangular' : 'flat';
     saveState();
     render();
   }
@@ -690,8 +677,16 @@
     render();
   }
 
+  // 1-3 bars = 1 pt each, 4-6 = 2 each, 7-9 = 3 each, 10+ = 4 each
+  function goldPerBar(n) {
+    if (n >= 10) return 4;
+    if (n >= 7) return 3;
+    if (n >= 4) return 2;
+    return n >= 1 ? 1 : 0;
+  }
+
   function goldPoints(n) {
-    return state.goldMode === 'triangular' ? (n * (n + 1)) / 2 : n;
+    return n * goldPerBar(n);
   }
 
   function computeEndBonuses() {
@@ -713,7 +708,7 @@
         const v = goldPoints(p.gold);
         if (v > 0) {
           res[p.id].gold = v;
-          lines.push(p.name + ': ' + p.gold + ' gold = +' + v);
+          lines.push(p.name + ': ' + p.gold + ' gold bars × ' + goldPerBar(p.gold) + ' = +' + v);
         }
       });
     }
@@ -1142,7 +1137,7 @@
 
     let goldRow = '';
     if (exp('gold')) {
-      goldRow = '<div class="piece-row"><span class="piece-label">🪙 Gold <small>(worth ' + goldPoints(p.gold) + ' at end)</small></span><span class="good">' +
+      goldRow = '<div class="piece-row"><span class="piece-label">🪙 Gold bars <small>(' + goldPerBar(p.gold) + ' each = ' + goldPoints(p.gold) + ' pts at end)</small></span><span class="good">' +
         '<button class="mini" ' + (state.finalScoring ? 'disabled ' : '') + 'onclick="adjGold(\'' + p.id + '\',-1)">−</button>' +
         '<b>' + p.gold + '</b>' +
         '<button class="mini" ' + (state.finalScoring ? 'disabled ' : '') + 'onclick="adjGold(\'' + p.id + '\',1)">+</button></span></div>';
