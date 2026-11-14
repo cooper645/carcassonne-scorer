@@ -1,28 +1,54 @@
-# 🏰 Carcassonne Scorer (Messengers & Robbers)
+# 🏰 Carcassonne Scorer (Big Box)
 
-A simple web-based score tracker for Carcassonne with the Messengers and Robbers mini-expansions. It runs entirely in the browser, with no accounts, no backend and no database.
+A web-based score tracker for Carcassonne with the Big Box expansions. It runs entirely in the browser, with no accounts, no backend and no database.
 
 **Live version:** https://cooper645.github.io/carcassonne-scorer/
 
 ## Features
 
-- Visual 50-space scoring board with a meeple, messenger and robber token for each player
-- Separate Meeple and Messenger score tracks for every player
-- Dark space alerts every 5 points, telling you when to draw a Message tile
-- Robbers that attach to an opponent's track and steal half the points (rounded up) when that track next scores
-- Quick-score buttons for common values (+2, +3, +4, +6, +8, +9)
-- Active turn toggle, so Message draws only trigger on your own turn
-- Final Scoring mode, which combines Meeple and Messenger scores into one total
-- Undo (last 30 actions) and a game log
-- Scores are saved in your browser, so a refresh won't lose your game
+- **Pick your expansions** at setup (or change them mid-game), and the scoring and tracking adapt
+- **Photo scoring board:** your own `board.jpg` with meeple, messenger and robber tokens drawn on top, plus a one-time 50-space calibration
+- **Points by source:** every score is tagged City, Road, Field, Monastery, Garden, Message, Magician/Witch or Other, with a bar and chips on each player card and a results table
+- **Score helper:** works out city, road, monastery, garden and field points, including Cathedral, Inn and Pig modifiers
+- **Trade goods:** Cloth, Barrel and Wheat counters, with a 10-point end bonus for whoever holds the most of each (ties all get it)
+- **Gold:** gold bar counter, scored at the end by tier
+- **Messengers:** separate Meeple and Messenger tracks, with dark-space alerts every 5 points
+- **Robbers:** attach to an opponent's track and steal half the points (rounded up) when it next scores
+- **Final Scoring:** combines tracks, adds goods and gold bonuses and shows the winner
+- Undo, a game log, and automatic saving in your browser
+
+## Supported expansions
+
+| Expansion | What the app does |
+|-----------|-------------------|
+| The River | Setup only, nothing to score |
+| The Abbot | Adds the Garden scoring source |
+| Inns & Cathedrals | Inn and Cathedral options in the Score helper |
+| Traders & Builders | Cloth, Barrel and Wheat counters, end bonus, Pig in the Score helper |
+| The Flying Machines | No scoring, nothing tracked |
+| The Messengers | Second track and dark-space Message draws |
+| The Ferries | No scoring, nothing tracked |
+| The Gold Mines | Gold bar counter, added at Final Scoring |
+| Magician & Witch | Manual +/- adjustment source |
+| The Robbers | Robber placement and point stealing |
+| The Crop Circles | No scoring, nothing tracked |
 
 ## How to use
 
-1. Add 2 or more players, pick a colour for each, then click **Start Game**.
-2. Choose a player, choose Meeple or Messenger, enter the points (or tap a quick button), then click **Add Points**.
-3. When a dark space banner appears, that player draws a Message tile.
-4. Use **Place Robber** on a player card to attach their robber to an opponent's track.
-5. At the end of the game, click **Final Scoring** to combine all scores.
+1. Add 2 or more players, pick a colour for each, tick the expansions you're playing, then click **Start Game**.
+2. First time only: click **📍 Calibrate photo board** and click the centre of each of the 50 spaces in order, starting with the start space.
+3. Choose a player, choose where the points came from, enter the points (or tap a quick button or use the Score helper), then click **Add Points**.
+4. Adjust Cloth, Barrels, Wheat and Gold with the − / + buttons on each player card as they are collected.
+5. Use **Place Robber** on a player card to attach a robber to an opponent's track.
+6. At the end of the game, click **Final Scoring**. The confirmation lists the bonuses that will be added.
+7. Enter any remaining end-game points (fields, unfinished features), then check the results table.
+
+## Scoring rules used
+
+- **Trade goods:** 10 points to the player with the most Cloth, 10 for Barrels and 10 for Wheat. Tied players each get the 10. Nothing is awarded if nobody holds any.
+- **Gold bars:** 1-3 bars score 1 point each, 4-6 score 2 each, 7-9 score 3 each, 10+ score 4 each.
+- **Robbers:** steal half the points scored (rounded up) on the track they sit on, then return to their owner.
+- **Dark spaces:** with Messengers on, landing on a multiple of 5 on your own turn means drawing a Message tile.
 
 ## Hosting
 
@@ -54,11 +80,13 @@ docker compose up -d --build
 | File | Purpose |
 |------|---------|
 | `index.html` | The whole app (HTML, CSS and JavaScript) |
+| `board.jpg` | Photo of the scoring board used as the track background |
 | `Dockerfile` | Builds a small Nginx container serving the app |
 | `docker-compose.yml` | Runs the container on port 8085 |
 
 ## Notes
 
-- Game data lives in your browser's local storage, so it is not shared between devices. Everyone should watch one screen.
-- Clearing site data in your browser will delete a game in progress.
-- Scoring rules are a simplified take on Messengers & Robbers and may not match the official rules exactly.
+- Game data and board calibration live in your browser's local storage, so they are not shared between devices. Everyone should watch one screen.
+- Clearing site data in your browser will delete a game in progress and the saved calibration.
+- To share one calibration across devices, click **Copy positions** and paste the result into `BAKED_SPOTS` near the top of the script in `index.html`.
+- Scoring rules are based on the Big Box rulebook as remembered by the author and may not match the official rules exactly.
