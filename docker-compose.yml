@@ -1,0 +1,7 @@
+services:
+  carcassonne-scorer:
+    build: .
+    container_name: carcassonne-scorer
+    restart: unless-stopped
+    ports:
+      - "8085:80"
