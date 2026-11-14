@@ -124,6 +124,10 @@
   .board-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
   .board-tools button { padding: 6px 12px; font-size: 0.85rem; }
   .board-extra { display: contents; }
+  .turn-bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; background: rgba(59,130,246,0.12); border: 1px solid var(--accent); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; }
+  .turn-bar small { color: var(--muted); flex-basis: 100%; }
+  .player-card.turn { box-shadow: 0 0 0 2px var(--accent); }
+  .turn-tag { font-size: 0.7rem; background: var(--accent); color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px; }
   a.btn-link { display: inline-block; background: var(--border); color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; }
   a.btn-link:hover { opacity: 0.9; }
   footer { margin: 24px 0 8px; text-align: center; font-size: 0.85rem; color: var(--muted); }
@@ -198,14 +202,19 @@
     </div>
 
     <div class="score-panel">
+      <div id="turnBar" class="turn-bar hidden">
+        <span>🎯 Turn: <strong id="turnName"></strong></span>
+        <span style="display:flex; gap:6px;">
+          <button class="secondary" onclick="changeTurn(-1)" title="Previous player">◀</button>
+          <button onclick="changeTurn(1)">Next turn ▶</button>
+        </span>
+        <small>Message tiles are only drawn when the player whose turn it is lands on a dark space.</small>
+      </div>
       <div class="controls-row">
         <select id="scorePlayer"></select>
         <select id="scoreCat" title="Where did the points come from?"></select>
         <select id="scorePiece"></select>
         <input type="number" id="scorePoints" placeholder="Points" style="width:95px;">
-        <label id="activeTurnWrap" style="display:flex; align-items:center; gap:5px; font-size:0.85rem; cursor:pointer;" title="Uncheck if scoring on an opponent's turn (no dark-space message draw)">
-          <input type="checkbox" id="isActiveTurn" checked> Active Turn
-        </label>
         <button onclick="applyScore()">Add Points</button>
         <button class="secondary" onclick="toggleHelper()">🧮 Score helper</button>
       </div>
@@ -341,7 +350,7 @@
   /* ---------- State ---------- */
 
   function freshState() {
-    return { started: false, finalScoring: false, goldMode: 'flat', expansions: {}, players: [], logs: [] };
+    return { started: false, finalScoring: false, turn: 0, expansions: {}, players: [], logs: [] };
   }
 
   let state = freshState();
@@ -367,7 +376,7 @@
     s = Object.assign(base, s || {});
     // Saves from the earlier version had no expansion list but used Messengers + Robbers.
     if (!s.expansions || typeof s.expansions !== 'object') s.expansions = { messengers: true, robbers: true };
-    if (s.goldMode !== 'triangular') s.goldMode = 'flat';
+    delete s.goldMode;
     s.players = (s.players || []).map(p => {
       p.meeple = p.meeple || 0;
       p.messenger = p.messenger || 0;
@@ -378,6 +387,7 @@
       return p;
     });
     s.logs = s.logs || [];
+    s.turn = (Number.isInteger(s.turn) && s.turn >= 0 && s.turn < s.players.length) ? s.turn : 0;
     return s;
   }
 
@@ -464,7 +474,8 @@
       return;
     }
     state.started = true;
-    const on = EXPANSIONS.filter(e => exp(e.id)).map(e => e.name);
+    state.turn = 0;
+    const on =EXPANSIONS.filter(e => exp(e.id)).map(e => e.name);
     log('Game started with ' + state.players.map(p => p.name).join(', ') + '.');
     log('Expansions: ' + (on.length ? on.join(', ') : 'base game only') + '.');
     saveState();
@@ -532,6 +543,18 @@
     return c;
   }
 
+  function changeTurn(d) {
+    const n = state.players.length;
+    if (!n) return;
+    pushHistory();
+    state.turn = (state.turn + d + n) % n;
+    const p = state.players[state.turn];
+    $('scorePlayer').value = p.id;
+    log('🎯 ' + p.name + "'s turn.");
+    saveState();
+    render();
+  }
+
   function quickScore(pts) {
     $('scorePoints').value = pts;
     applyScore();
@@ -543,7 +566,6 @@
     const twoTracks = exp('messengers') && !state.finalScoring;
     const piece = twoTracks ? $('scorePiece').value : 'meeple';
     const points = parseInt($('scorePoints').value, 10);
-    const isActiveTurn = $('isActiveTurn').checked;
     if (!playerId || isNaN(points) || points === 0) return;
     if (points < 0 && cat !== 'magic' && cat !== 'other') {
       alert('Negative points are only allowed for the Magician/Witch or Other source.');
@@ -555,6 +577,8 @@
     hideBanner('bannerRobbery');
 
     const scorer = state.players.find(p => p.id === playerId);
+    const turnPlayer = state.players[state.turn];
+    const isActiveTurn = !!turnPlayer && turnPlayer.id === scorer.id;
     const oldScore = scorer[piece];
     const newScore = Math.max(0, oldScore + points);
     const delta = newScore - oldScore;
@@ -1179,9 +1203,10 @@
         '<button class="mini" ' + (state.finalScoring ? 'disabled ' : '') + 'onclick="adjGold(\'' + p.id + '\',1)">+</button></span></div>';
     }
 
-    return '<div class="player-card" style="border-color:' + p.color + '">' +
+    const isTurn = twoTracks && state.players[state.turn] && state.players[state.turn].id === p.id;
+    return '<div class="player-card' + (isTurn ? ' turn' : '') + '" style="border-color:' + p.color + '">' +
       '<div class="player-header">' +
-      '<div class="player-name"><span class="dot" style="background:' + p.color + '"></span>' + esc(p.name) + '</div>' +
+      '<div class="player-name"><span class="dot" style="background:' + p.color + '"></span>' + esc(p.name) + (isTurn ? '<span class="turn-tag">TURN</span>' : '') + '</div>' +
       '<div class="total-badge">' + total + '</div></div>' +
       meepleRow + messengerRow + catBreakdownHTML(p) + goodsRow + goldRow + robberStatusHTML +
       '</div>';
@@ -1246,7 +1271,8 @@
     // Score panel controls
     const twoTracks = exp('messengers') && !state.finalScoring;
     $('scorePiece').classList.toggle('hidden', !twoTracks);
-    $('activeTurnWrap').classList.toggle('hidden', !twoTracks);
+    $('turnBar').classList.toggle('hidden', !twoTracks);
+    if (twoTracks && state.players[state.turn]) $('turnName').textContent = state.players[state.turn].name;
 
     const playerSelect = $('scorePlayer');
     const prevPlayer = playerSelect.value;
