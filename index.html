@@ -59,7 +59,7 @@
   .log div { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
   .hidden { display: none !important; }
 
-  /* ---------- Scoring board ---------- */
+  /* ---------- Drawn board ---------- */
   .board {
     display: grid;
     grid-template-columns: repeat(15, minmax(0, 1fr));
@@ -87,6 +87,24 @@
   .legend-keys .tok { filter: none; margin: 0; width: 1.4em; height: 1.4em; }
   .legend-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; }
   .legend-row .lap { color: var(--dark-space); font-weight: 700; }
+
+  /* ---------- Photo board ---------- */
+  .board-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .board-tools button { padding: 6px 12px; font-size: 0.85rem; }
+  .calib-bar { background: rgba(59,130,246,0.15); border: 1px solid var(--accent); color: #93c5fd; padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; font-size: 0.9rem; }
+  .calib-bar button { padding: 5px 10px; font-size: 0.8rem; }
+  .photo-board { position: relative; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 10px; background: var(--card); }
+  .photo-board img { width: 100%; display: block; user-select: none; -webkit-user-drag: none; }
+  .photo-tokens, .calib-marks, .calib-layer { position: absolute; inset: 0; }
+  .photo-tokens, .calib-marks { pointer-events: none; }
+  .calib-layer { display: none; cursor: crosshair; }
+  .photo-board.calibrating .calib-layer { display: block; }
+  .ptok { position: absolute; filter: drop-shadow(0 0 2px #000) drop-shadow(0 0 1px #fff); }
+  .ptok svg { width: 100%; height: 100%; display: block; }
+  .cmark { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: rgba(59,130,246,0.9); color: #fff; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); border: 1px solid #fff; }
+  .cmark.first { background: var(--success); }
+  .img-error { padding: 14px; color: #fca5a5; font-size: 0.9rem; }
+  .photo-legend { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; margin-bottom: 20px; font-size: 0.9rem; }
 </style>
 </head>
 <body>
@@ -156,6 +174,29 @@
       </div>
     </div>
 
+    <div class="board-tools">
+      <button class="secondary" onclick="startCalibration()">📍 Calibrate photo board</button>
+      <button id="btnToggleBoard" class="secondary" onclick="toggleBoardMode()">Show drawn board</button>
+      <button class="secondary" onclick="copySpots()">Copy positions</button>
+    </div>
+
+    <div id="calibBar" class="calib-bar hidden">
+      <span id="calibText"></span>
+      <span style="display:flex; gap:8px;">
+        <button class="secondary" onclick="calibUndo()">Undo last click</button>
+        <button class="danger" onclick="calibCancel()">Cancel</button>
+      </span>
+    </div>
+
+    <div id="photoBoard" class="photo-board hidden">
+      <img id="boardImg" src="board.jpg" alt="Carcassonne scoring board" draggable="false" onload="renderPhotoBoard()" onerror="boardImgError()">
+      <div id="photoTokens" class="photo-tokens"></div>
+      <div id="calibMarks" class="calib-marks"></div>
+      <div id="calibLayer" class="calib-layer" onclick="onCalibClick(event)"></div>
+    </div>
+    <div id="imgError" class="img-error hidden">Couldn't load board.jpg. Make sure the file is in the repo root and named exactly <code>board.jpg</code> (lowercase).</div>
+    <div id="photoLegend" class="photo-legend hidden"></div>
+
     <div id="board" class="board"></div>
 
     <div id="playerGrid" class="grid"></div>
@@ -183,6 +224,14 @@
   const BOARD_W = 15;
   const BOARD_H = 12;
 
+  // Optional: paste the output of "Copy positions" here (replacing null) so every device shares the calibration.
+  const BAKED_SPOTS = null;
+
+  let calibrating = false;
+  let calibSpots = [];
+  let boardMode = null;
+  let imgFailed = false;
+
   function esc(s) {
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
@@ -191,6 +240,22 @@
     const saved = localStorage.getItem('carcassonne_mr_state');
     if (saved) state = JSON.parse(saved);
   } catch (e) {}
+
+  function validSpots(a) {
+    return Array.isArray(a) && a.length === TRACK_LEN &&
+      a.every(p => Array.isArray(p) && p.length === 2 && isFinite(p[0]) && isFinite(p[1]));
+  }
+
+  function loadSpots() {
+    try {
+      const s = JSON.parse(localStorage.getItem('carcassonne_mr_spots'));
+      if (validSpots(s)) return s;
+    } catch (e) {}
+    return validSpots(BAKED_SPOTS) ? BAKED_SPOTS : null;
+  }
+
+  let spots = loadSpots();
+  try { boardMode = localStorage.getItem('carcassonne_mr_boardmode'); } catch (e) {}
 
   function saveState() {
     try { localStorage.setItem('carcassonne_mr_state', JSON.stringify(state)); } catch (e) {}
@@ -249,7 +314,7 @@
   }
 
   function resetGame() {
-    if (!confirm('Reset the entire game and clear all scores?')) return;
+    if (!confirm('Reset the entire game and clear all scores? (Your board calibration is kept.)')) return;
     try { localStorage.removeItem('carcassonne_mr_state'); } catch (e) {}
     state = { started: false, finalScoring: false, players: [], logs: [] };
     historyStack = [];
@@ -257,6 +322,8 @@
     hideBanner('bannerMessage');
     hideBanner('bannerRobbery');
     closeRobberModal();
+    calibrating = false;
+    calibSpots = [];
     render();
   }
 
@@ -392,17 +459,7 @@
     document.getElementById(id).classList.remove('show');
   }
 
-  /* ---------- Board drawing ---------- */
-
-  // Track runs clockwise starting at the top-left corner (space 0).
-  function trackCoords() {
-    const c = [];
-    for (let x = 1; x <= BOARD_W; x++) c.push([x, 1]);
-    for (let y = 2; y <= BOARD_H; y++) c.push([BOARD_W, y]);
-    for (let x = BOARD_W - 1; x >= 1; x--) c.push([x, BOARD_H]);
-    for (let y = BOARD_H - 1; y >= 2; y--) c.push([1, y]);
-    return c;
-  }
+  /* ---------- Token graphics ---------- */
 
   const MEEPLE_SHAPE = '<circle cx="12" cy="6" r="4"/><path d="M12 10C8 10 7 12 5 13L2 12V15L6 17L7 22H10L12 19L14 22H17L18 17L22 15V12L19 13C17 12 16 10 12 10Z"/>';
 
@@ -420,40 +477,40 @@
            '<rect x="8" y="4.5" width="8" height="2" fill="#fff" stroke="none"/></svg>';
   }
 
-  function renderBoard() {
-    const coords = trackCoords();
-    const cells = coords.map(() => []);
-
+  // Collect every token as {space, svg, title}
+  function collectTokens() {
+    const out = [];
     state.players.forEach(p => {
       const lapsM = Math.floor(p.meeple / TRACK_LEN);
-      cells[p.meeple % TRACK_LEN].push(
-        '<span class="tok" title="' + esc(p.name) + ' Meeple: ' + p.meeple + (lapsM ? ' (lap ' + (lapsM + 1) + ')' : '') + '">' + meepleSVG(p.color) + '</span>'
-      );
+      out.push({
+        space: p.meeple % TRACK_LEN,
+        svg: meepleSVG(p.color),
+        title: p.name + ' Meeple: ' + p.meeple + (lapsM ? ' (lap ' + (lapsM + 1) + ')' : '')
+      });
       if (!state.finalScoring) {
         const lapsG = Math.floor(p.messenger / TRACK_LEN);
-        cells[p.messenger % TRACK_LEN].push(
-          '<span class="tok" title="' + esc(p.name) + ' Messenger: ' + p.messenger + (lapsG ? ' (lap ' + (lapsG + 1) + ')' : '') + '">' + messengerSVG(p.color) + '</span>'
-        );
+        out.push({
+          space: p.messenger % TRACK_LEN,
+          svg: messengerSVG(p.color),
+          title: p.name + ' Messenger: ' + p.messenger + (lapsG ? ' (lap ' + (lapsG + 1) + ')' : '')
+        });
       }
     });
-
     state.players.forEach(thief => {
       if (!thief.robberTarget) return;
       const victim = state.players.find(v => v.id === thief.robberTarget.playerId);
       if (!victim) return;
-      const pos = victim[thief.robberTarget.piece] % TRACK_LEN;
-      cells[pos].push(
-        '<span class="tok" title="' + esc(thief.name) + "'s Robber on " + esc(victim.name) + "'s " + thief.robberTarget.piece + '">' + robberSVG(thief.color) + '</span>'
-      );
+      out.push({
+        space: victim[thief.robberTarget.piece] % TRACK_LEN,
+        svg: robberSVG(thief.color),
+        title: thief.name + "'s Robber on " + victim.name + "'s " + thief.robberTarget.piece
+      });
     });
+    return out;
+  }
 
-    let html = coords.map((xy, i) => {
-      const cls = 'cell' + (i % 5 === 0 ? ' dark' : '') + (i === 0 ? ' start' : '');
-      return '<div class="' + cls + '" style="grid-column:' + xy[0] + ';grid-row:' + xy[1] + ';">' +
-        '<span class="cn">' + i + '</span><div class="toks">' + cells[i].join('') + '</div></div>';
-    }).join('');
-
-    const legendKeys =
+  function legendHTML() {
+    const keys =
       '<div class="legend-keys">' +
       '<span><span class="tok">' + meepleSVG('#9aa5b1') + '</span> Meeple</span>' +
       (state.finalScoring ? '' : '<span><span class="tok">' + messengerSVG('#9aa5b1') + '</span> Messenger</span>') +
@@ -461,7 +518,7 @@
       '<span style="color:var(--dark-space);">■ Dark space (every 5)</span>' +
       '</div>';
 
-    const legendRows = state.players.map(p => {
+    const rows = state.players.map(p => {
       const lapM = Math.floor(p.meeple / TRACK_LEN);
       const lapG = Math.floor(p.messenger / TRACK_LEN);
       const lapText = n => n > 0 ? ' <span class="lap">+' + (n * TRACK_LEN) + '</span>' : '';
@@ -475,9 +532,181 @@
       return '<div class="legend-row">' + line + '</div>';
     }).join('');
 
-    html += '<div class="board-center"><h4>Scoring Track (50 spaces, clockwise from top-left)</h4>' + legendKeys + legendRows + '</div>';
+    return keys + rows;
+  }
+
+  /* ---------- Drawn board ---------- */
+
+  function trackCoords() {
+    const c = [];
+    for (let x = 1; x <= BOARD_W; x++) c.push([x, 1]);
+    for (let y = 2; y <= BOARD_H; y++) c.push([BOARD_W, y]);
+    for (let x = BOARD_W - 1; x >= 1; x--) c.push([x, BOARD_H]);
+    for (let y = BOARD_H - 1; y >= 2; y--) c.push([1, y]);
+    return c;
+  }
+
+  function renderBoard() {
+    const coords = trackCoords();
+    const cells = coords.map(() => []);
+    collectTokens().forEach(t => {
+      cells[t.space].push('<span class="tok" title="' + esc(t.title) + '">' + t.svg + '</span>');
+    });
+
+    let html = coords.map((xy, i) => {
+      const cls = 'cell' + (i % 5 === 0 ? ' dark' : '') + (i === 0 ? ' start' : '');
+      return '<div class="' + cls + '" style="grid-column:' + xy[0] + ';grid-row:' + xy[1] + ';">' +
+        '<span class="cn">' + i + '</span><div class="toks">' + cells[i].join('') + '</div></div>';
+    }).join('');
+
+    html += '<div class="board-center"><h4>Scoring Track (50 spaces, clockwise from top-left)</h4>' + legendHTML() + '</div>';
     document.getElementById('board').innerHTML = html;
   }
+
+  /* ---------- Photo board + calibration ---------- */
+
+  function currentMode() {
+    if (calibrating) return 'photo';
+    if (!spots) return 'drawn';
+    return boardMode === 'drawn' ? 'drawn' : 'photo';
+  }
+
+  function saveBoardMode() {
+    try { localStorage.setItem('carcassonne_mr_boardmode', boardMode || ''); } catch (e) {}
+  }
+
+  function toggleBoardMode() {
+    if (calibrating) return;
+    if (currentMode() === 'photo') {
+      boardMode = 'drawn';
+    } else {
+      if (!spots) { startCalibration(); return; }
+      boardMode = 'photo';
+    }
+    saveBoardMode();
+    renderBoardArea();
+  }
+
+  function startCalibration() {
+    if (spots && !confirm('Replace your saved board positions and start again?')) return;
+    calibrating = true;
+    calibSpots = [];
+    renderBoardArea();
+    document.getElementById('photoBoard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function onCalibClick(e) {
+    if (!calibrating) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = Math.round((e.clientX - r.left) / r.width * 1000) / 10;
+    const y = Math.round((e.clientY - r.top) / r.height * 1000) / 10;
+    calibSpots.push([x, y]);
+    if (calibSpots.length >= TRACK_LEN) finishCalibration();
+    else renderPhotoBoard();
+  }
+
+  function calibUndo() {
+    if (!calibrating || !calibSpots.length) return;
+    calibSpots.pop();
+    renderPhotoBoard();
+  }
+
+  function calibCancel() {
+    calibrating = false;
+    calibSpots = [];
+    renderBoardArea();
+  }
+
+  function finishCalibration() {
+    spots = calibSpots.slice();
+    try { localStorage.setItem('carcassonne_mr_spots', JSON.stringify(spots)); } catch (e) {}
+    calibrating = false;
+    calibSpots = [];
+    boardMode = 'photo';
+    saveBoardMode();
+    renderBoardArea();
+  }
+
+  function copySpots() {
+    if (!spots) { alert('No board positions saved yet. Click "Calibrate photo board" first.'); return; }
+    const json = JSON.stringify(spots);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(json).then(
+        () => alert('Positions copied. You can paste them into BAKED_SPOTS in index.html to share them across devices.'),
+        () => prompt('Copy these positions:', json)
+      );
+    } else {
+      prompt('Copy these positions:', json);
+    }
+  }
+
+  function boardImgError() {
+    imgFailed = true;
+    document.getElementById('imgError').classList.remove('hidden');
+  }
+
+  function renderPhotoBoard() {
+    const wrap = document.getElementById('photoBoard');
+    const layer = document.getElementById('photoTokens');
+    const marks = document.getElementById('calibMarks');
+    wrap.classList.toggle('calibrating', calibrating);
+
+    if (calibrating) {
+      layer.innerHTML = '';
+      marks.innerHTML = calibSpots.map((p, i) =>
+        '<span class="cmark' + (i === 0 ? ' first' : '') + '" style="left:' + p[0] + '%;top:' + p[1] + '%;">' + i + '</span>'
+      ).join('');
+      const n = calibSpots.length;
+      document.getElementById('calibText').innerHTML = n === 0
+        ? '📍 Click the centre of the <strong>START space</strong> (space 0).'
+        : '📍 Click the centre of space <strong>' + n + '</strong> of 49 &nbsp;(' + n + ' of 50 placed)';
+      return;
+    }
+
+    marks.innerHTML = '';
+    if (!spots) { layer.innerHTML = ''; return; }
+
+    const w = wrap.clientWidth || 600;
+    const size = Math.max(14, Math.min(34, w * 0.04));
+    const groups = spots.map(() => []);
+    collectTokens().forEach(t => groups[t.space].push(t));
+
+    let html = '';
+    groups.forEach((list, i) => {
+      const n = list.length;
+      const radius = n <= 1 ? 0 : size * (0.35 + 0.08 * n);
+      list.forEach((t, j) => {
+        const ang = -Math.PI / 2 + (2 * Math.PI * j) / n;
+        const dx = (radius * Math.cos(ang)).toFixed(1);
+        const dy = (radius * Math.sin(ang)).toFixed(1);
+        html += '<div class="ptok" title="' + esc(t.title) + '" style="left:' + spots[i][0] + '%;top:' + spots[i][1] + '%;' +
+          'width:' + size + 'px;height:' + size + 'px;' +
+          'transform:translate(-50%,-50%) translate(' + dx + 'px,' + dy + 'px);">' + t.svg + '</div>';
+      });
+    });
+    layer.innerHTML = html;
+    document.getElementById('photoLegend').innerHTML = legendHTML();
+  }
+
+  function renderBoardArea() {
+    const mode = currentMode();
+    document.getElementById('photoBoard').classList.toggle('hidden', mode !== 'photo');
+    document.getElementById('imgError').classList.toggle('hidden', !(mode === 'photo' && imgFailed));
+    document.getElementById('board').classList.toggle('hidden', mode !== 'drawn');
+    document.getElementById('photoLegend').classList.toggle('hidden', mode !== 'photo' || calibrating || !spots);
+    document.getElementById('calibBar').classList.toggle('hidden', !calibrating);
+
+    const toggle = document.getElementById('btnToggleBoard');
+    toggle.textContent = mode === 'photo' ? 'Show drawn board' : 'Show photo board';
+    toggle.disabled = calibrating;
+
+    if (mode === 'photo') renderPhotoBoard();
+    else renderBoard();
+  }
+
+  window.addEventListener('resize', () => {
+    if (state.started && currentMode() === 'photo') renderPhotoBoard();
+  });
 
   /* ---------- Main render ---------- */
 
@@ -511,7 +740,7 @@
     playerSelect.innerHTML = state.players.map(p => '<option value="' + p.id + '">' + esc(p.name) + '</option>').join('');
     if (prevSelected && state.players.some(p => p.id === prevSelected)) playerSelect.value = prevSelected;
 
-    renderBoard();
+    renderBoardArea();
 
     document.getElementById('playerGrid').innerHTML = state.players.map(p => {
       const total = p.meeple + p.messenger;
