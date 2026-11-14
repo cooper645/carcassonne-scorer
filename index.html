@@ -39,7 +39,7 @@
   .player-card { background: var(--card); border: 2px solid var(--border); border-radius: 10px; padding: 14px; position: relative; }
   .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
   .player-name { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
-  .dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,0.3); }
+  .dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,0.3); flex-shrink: 0; }
   .total-badge { font-size: 1.3rem; font-weight: 800; }
 
   .piece-row { display: flex; justify-content: space-between; align-items: center; background: var(--bg); padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; }
@@ -58,6 +58,35 @@
   .log { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; max-height: 200px; overflow-y: auto; font-size: 0.85rem; color: var(--muted); }
   .log div { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
   .hidden { display: none !important; }
+
+  /* ---------- Scoring board ---------- */
+  .board {
+    display: grid;
+    grid-template-columns: repeat(15, minmax(0, 1fr));
+    grid-template-rows: repeat(12, minmax(0, 1fr));
+    gap: 2px;
+    aspect-ratio: 15 / 12;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px;
+    margin-bottom: 20px;
+  }
+  .cell { position: relative; background: #323947; border-radius: 4px; min-width: 0; min-height: 0; overflow: hidden; }
+  .cell.dark { background: #5a4310; box-shadow: inset 0 0 0 1px var(--dark-space); }
+  .cell.start { box-shadow: inset 0 0 0 2px var(--success); }
+  .cn { position: absolute; top: 1px; left: 2px; font-size: clamp(6px, 1.2vw, 10px); color: var(--muted); line-height: 1; pointer-events: none; }
+  .cell.dark .cn { color: #fcd34d; font-weight: 700; }
+  .toks { position: absolute; inset: 0; padding-top: clamp(6px, 1.3vw, 11px); display: flex; flex-wrap: wrap; align-content: center; justify-content: center; }
+  .tok { display: block; width: clamp(9px, 2.3vw, 22px); height: clamp(9px, 2.3vw, 22px); margin: -1px; filter: drop-shadow(0 0 1px #fff); }
+  .tok svg { width: 100%; height: 100%; display: block; }
+  .board-center { grid-column: 2 / 15; grid-row: 2 / 12; background: var(--bg); border-radius: 8px; padding: 10px 14px; overflow: auto; font-size: clamp(9px, 1.7vw, 14px); }
+  .board-center h4 { margin: 0 0 6px; font-size: 1.05em; }
+  .legend-keys { display: flex; flex-wrap: wrap; gap: 10px; color: var(--muted); margin-bottom: 8px; align-items: center; }
+  .legend-keys span { display: inline-flex; align-items: center; gap: 4px; }
+  .legend-keys .tok { filter: none; margin: 0; width: 1.4em; height: 1.4em; }
+  .legend-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; }
+  .legend-row .lap { color: var(--dark-space); font-weight: 700; }
 </style>
 </head>
 <body>
@@ -127,6 +156,8 @@
       </div>
     </div>
 
+    <div id="board" class="board"></div>
+
     <div id="playerGrid" class="grid"></div>
 
     <div id="robberModal" class="setup-box hidden" style="border-color: var(--robber);">
@@ -147,6 +178,10 @@
   let state = { started: false, finalScoring: false, players: [], logs: [] };
   let historyStack = [];
   let activeRobberPlacerId = null;
+
+  const TRACK_LEN = 50;
+  const BOARD_W = 15;
+  const BOARD_H = 12;
 
   function esc(s) {
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -357,6 +392,95 @@
     document.getElementById(id).classList.remove('show');
   }
 
+  /* ---------- Board drawing ---------- */
+
+  // Track runs clockwise starting at the top-left corner (space 0).
+  function trackCoords() {
+    const c = [];
+    for (let x = 1; x <= BOARD_W; x++) c.push([x, 1]);
+    for (let y = 2; y <= BOARD_H; y++) c.push([BOARD_W, y]);
+    for (let x = BOARD_W - 1; x >= 1; x--) c.push([x, BOARD_H]);
+    for (let y = BOARD_H - 1; y >= 2; y--) c.push([1, y]);
+    return c;
+  }
+
+  const MEEPLE_SHAPE = '<circle cx="12" cy="6" r="4"/><path d="M12 10C8 10 7 12 5 13L2 12V15L6 17L7 22H10L12 19L14 22H17L18 17L22 15V12L19 13C17 12 16 10 12 10Z"/>';
+
+  function meepleSVG(color) {
+    return '<svg viewBox="0 0 24 24" fill="' + color + '" stroke="#fff" stroke-width="1">' + MEEPLE_SHAPE + '</svg>';
+  }
+
+  function messengerSVG(color) {
+    return '<svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2" fill="' + color + '" stroke="#fff" stroke-width="1.5"/>' +
+           '<path d="M3 7L12 14L21 7" fill="none" stroke="#fff" stroke-width="1.5"/></svg>';
+  }
+
+  function robberSVG(color) {
+    return '<svg viewBox="0 0 24 24" fill="#111" stroke="' + color + '" stroke-width="2">' + MEEPLE_SHAPE +
+           '<rect x="8" y="4.5" width="8" height="2" fill="#fff" stroke="none"/></svg>';
+  }
+
+  function renderBoard() {
+    const coords = trackCoords();
+    const cells = coords.map(() => []);
+
+    state.players.forEach(p => {
+      const lapsM = Math.floor(p.meeple / TRACK_LEN);
+      cells[p.meeple % TRACK_LEN].push(
+        '<span class="tok" title="' + esc(p.name) + ' Meeple: ' + p.meeple + (lapsM ? ' (lap ' + (lapsM + 1) + ')' : '') + '">' + meepleSVG(p.color) + '</span>'
+      );
+      if (!state.finalScoring) {
+        const lapsG = Math.floor(p.messenger / TRACK_LEN);
+        cells[p.messenger % TRACK_LEN].push(
+          '<span class="tok" title="' + esc(p.name) + ' Messenger: ' + p.messenger + (lapsG ? ' (lap ' + (lapsG + 1) + ')' : '') + '">' + messengerSVG(p.color) + '</span>'
+        );
+      }
+    });
+
+    state.players.forEach(thief => {
+      if (!thief.robberTarget) return;
+      const victim = state.players.find(v => v.id === thief.robberTarget.playerId);
+      if (!victim) return;
+      const pos = victim[thief.robberTarget.piece] % TRACK_LEN;
+      cells[pos].push(
+        '<span class="tok" title="' + esc(thief.name) + "'s Robber on " + esc(victim.name) + "'s " + thief.robberTarget.piece + '">' + robberSVG(thief.color) + '</span>'
+      );
+    });
+
+    let html = coords.map((xy, i) => {
+      const cls = 'cell' + (i % 5 === 0 ? ' dark' : '') + (i === 0 ? ' start' : '');
+      return '<div class="' + cls + '" style="grid-column:' + xy[0] + ';grid-row:' + xy[1] + ';">' +
+        '<span class="cn">' + i + '</span><div class="toks">' + cells[i].join('') + '</div></div>';
+    }).join('');
+
+    const legendKeys =
+      '<div class="legend-keys">' +
+      '<span><span class="tok">' + meepleSVG('#9aa5b1') + '</span> Meeple</span>' +
+      (state.finalScoring ? '' : '<span><span class="tok">' + messengerSVG('#9aa5b1') + '</span> Messenger</span>') +
+      '<span><span class="tok">' + robberSVG('#9aa5b1') + '</span> Robber</span>' +
+      '<span style="color:var(--dark-space);">■ Dark space (every 5)</span>' +
+      '</div>';
+
+    const legendRows = state.players.map(p => {
+      const lapM = Math.floor(p.meeple / TRACK_LEN);
+      const lapG = Math.floor(p.messenger / TRACK_LEN);
+      const lapText = n => n > 0 ? ' <span class="lap">+' + (n * TRACK_LEN) + '</span>' : '';
+      let line = '<span class="dot" style="background:' + p.color + '"></span><strong>' + esc(p.name) + '</strong> ' +
+        '<span>Meeple ' + p.meeple + lapText(lapM) + '</span>';
+      if (!state.finalScoring) line += '<span>· Messenger ' + p.messenger + lapText(lapG) + '</span>';
+      if (p.robberTarget) {
+        const v = state.players.find(x => x.id === p.robberTarget.playerId);
+        line += '<span>· 🦹 on ' + esc(v ? v.name : '?') + '</span>';
+      }
+      return '<div class="legend-row">' + line + '</div>';
+    }).join('');
+
+    html += '<div class="board-center"><h4>Scoring Track (50 spaces, clockwise from top-left)</h4>' + legendKeys + legendRows + '</div>';
+    document.getElementById('board').innerHTML = html;
+  }
+
+  /* ---------- Main render ---------- */
+
   function render() {
     const setupView = document.getElementById('setupView');
     const gameView = document.getElementById('gameView');
@@ -386,6 +510,8 @@
     const prevSelected = playerSelect.value;
     playerSelect.innerHTML = state.players.map(p => '<option value="' + p.id + '">' + esc(p.name) + '</option>').join('');
     if (prevSelected && state.players.some(p => p.id === prevSelected)) playerSelect.value = prevSelected;
+
+    renderBoard();
 
     document.getElementById('playerGrid').innerHTML = state.players.map(p => {
       const total = p.meeple + p.messenger;
