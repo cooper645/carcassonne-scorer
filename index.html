@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carcassonne Scorer — Messengers & Robbers</title>
+<style>
+  :root {
+    --bg: #1e2229;
+    --card: #282d37;
+    --border: #3a4150;
+    --text: #f0f4f8;
+    --muted: #9aa5b1;
+    --accent: #3b82f6;
+    --dark-space: #f59e0b;
+    --robber: #ef4444;
+    --success: #10b981;
+  }
+  * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--text); }
+  .container { max-width: 900px; margin: 0 auto; }
+  header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+  h1 { margin: 0; font-size: 1.4rem; }
+  button { background: var(--accent); color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+  button:hover { opacity: 0.9; }
+  button.secondary { background: var(--border); }
+  button.danger { background: var(--robber); }
+  button.warning { background: var(--dark-space); color: #111; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  input, select { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px 10px; border-radius: 6px; font-size: 0.95rem; }
+
+  .banner { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600; display: none; justify-content: space-between; align-items: center; gap: 10px; }
+  .banner.show { display: flex; }
+  .banner.message { background: rgba(245, 158, 11, 0.2); border: 1px solid var(--dark-space); color: #fcd34d; }
+  .banner.robbery { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--robber); color: #fca5a5; }
+
+  .setup-box, .score-panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .player-card { background: var(--card); border: 2px solid var(--border); border-radius: 10px; padding: 14px; position: relative; }
+  .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  .player-name { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,0.3); }
+  .total-badge { font-size: 1.3rem; font-weight: 800; }
+
+  .piece-row { display: flex; justify-content: space-between; align-items: center; background: var(--bg); padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; }
+  .piece-info { display: flex; flex-direction: column; }
+  .piece-label { font-size: 0.8rem; color: var(--muted); }
+  .piece-score { font-size: 1.15rem; font-weight: 700; }
+  .dark-tag { font-size: 0.7rem; background: var(--dark-space); color: #000; padding: 2px 5px; border-radius: 4px; font-weight: 700; margin-left: 6px; }
+  .robber-tag { font-size: 0.75rem; background: var(--robber); color: #fff; padding: 2px 6px; border-radius: 4px; margin-top: 4px; display: inline-block; }
+
+  .robber-status { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+  .controls-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .quick-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .quick-btns button { padding: 6px 10px; background: var(--border); font-size: 0.85rem; }
+
+  .log { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; max-height: 200px; overflow-y: auto; font-size: 0.85rem; color: var(--muted); }
+  .log div { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🏰 Carcassonne Scorer <span style="font-size:0.85rem; color:var(--muted); font-weight:normal;">(Messengers &amp; Robbers)</span></h1>
+    <div style="display:flex; gap:8px;">
+      <button id="btnUndo" class="secondary" onclick="undo()" disabled>↩ Undo</button>
+      <button id="btnFinalPhase" class="warning" onclick="toggleFinalScoring()">🏁 Final Scoring</button>
+      <button class="danger" onclick="resetGame()">Reset</button>
+    </div>
+  </header>
+
+  <div id="bannerMessage" class="banner message">
+    <span id="bannerMessageText"></span>
+    <button class="warning" style="padding:4px 10px;" onclick="hideBanner('bannerMessage')">Dismiss</button>
+  </div>
+  <div id="bannerRobbery" class="banner robbery">
+    <span id="bannerRobberyText"></span>
+    <button class="danger" style="padding:4px 10px;" onclick="hideBanner('bannerRobbery')">Dismiss</button>
+  </div>
+
+  <div id="setupView" class="setup-box">
+    <h2 style="margin-top:0; font-size:1.1rem;">New Game Setup</h2>
+    <div class="controls-row" style="margin-bottom:12px;">
+      <input type="text" id="newPlayerName" placeholder="Player name..." onkeypress="if(event.key==='Enter') addPlayer()">
+      <select id="newPlayerColor">
+        <option value="#ef4444">Red</option>
+        <option value="#3b82f6">Blue</option>
+        <option value="#10b981">Green</option>
+        <option value="#eab308">Yellow</option>
+        <option value="#1f2937">Black</option>
+        <option value="#ec4899">Pink</option>
+      </select>
+      <button onclick="addPlayer()">+ Add Player</button>
+    </div>
+    <div id="setupPlayerList" style="margin-bottom:14px; display:flex; flex-wrap:wrap; gap:8px;"></div>
+    <button onclick="startGame()" style="background:var(--success); width:100%; padding:10px;">Start Game</button>
+  </div>
+
+  <div id="gameView" class="hidden">
+    <div id="phaseNotice" class="hidden" style="background:rgba(16,185,129,0.15); border:1px solid var(--success); padding:10px 14px; border-radius:8px; margin-bottom:14px; color:#6ee7b7; font-size:0.9rem;">
+      <strong>Final Scoring Mode:</strong> Messengers and Meeples are combined. Dark-space message triggers are disabled. Robbers still trigger if attached!
+    </div>
+
+    <div class="score-panel">
+      <div class="controls-row">
+        <select id="scorePlayer"></select>
+        <select id="scorePiece">
+          <option value="meeple">Move Meeple</option>
+          <option value="messenger">Move Messenger</option>
+        </select>
+        <input type="number" id="scorePoints" placeholder="Points" style="width:95px;" min="1">
+        <label style="display:flex; align-items:center; gap:5px; font-size:0.85rem; cursor:pointer;" title="Uncheck if scoring on an opponent's turn (no dark-space message draw)">
+          <input type="checkbox" id="isActiveTurn" checked> Active Turn
+        </label>
+        <button onclick="applyScore()">Add Points</button>
+      </div>
+      <div class="quick-btns">
+        <span style="font-size:0.8rem; color:var(--muted); align-self:center;">Quick:</span>
+        <button onclick="quickScore(2)">+2 (Road/Message)</button>
+        <button onclick="quickScore(3)">+3</button>
+        <button onclick="quickScore(4)">+4 (City/Shield)</button>
+        <button onclick="quickScore(6)">+6</button>
+        <button onclick="quickScore(8)">+8</button>
+        <button onclick="quickScore(9)">+9 (Cloister)</button>
+      </div>
+    </div>
+
+    <div id="playerGrid" class="grid"></div>
+
+    <div id="robberModal" class="setup-box hidden" style="border-color: var(--robber);">
+      <h3 style="margin-top:0; font-size:1rem; color:#fca5a5;">Place <span id="robberOwnerName"></span>'s Robber</h3>
+      <div class="controls-row">
+        <select id="robberTargetSelect"></select>
+        <button class="danger" onclick="confirmPlaceRobber()">Attach Robber</button>
+        <button class="secondary" onclick="closeRobberModal()">Cancel</button>
+      </div>
+    </div>
+
+    <h3 style="font-size:0.95rem; color:var(--muted); margin-bottom:6px;">Game Log</h3>
+    <div id="gameLog" class="log"></div>
+  </div>
+</div>
+
+<script>
+  let state = { started: false, finalScoring: false, players: [], logs: [] };
+  let historyStack = [];
+  let activeRobberPlacerId = null;
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  try {
+    const saved = localStorage.getItem('carcassonne_mr_state');
+    if (saved) state = JSON.parse(saved);
+  } catch (e) {}
+
+  function saveState() {
+    try { localStorage.setItem('carcassonne_mr_state', JSON.stringify(state)); } catch (e) {}
+  }
+
+  function pushHistory() {
+    historyStack.push(JSON.stringify(state));
+    if (historyStack.length > 30) historyStack.shift();
+    document.getElementById('btnUndo').disabled = false;
+  }
+
+  function undo() {
+    if (!historyStack.length) return;
+    state = JSON.parse(historyStack.pop());
+    document.getElementById('btnUndo').disabled = historyStack.length === 0;
+    hideBanner('bannerMessage');
+    hideBanner('bannerRobbery');
+    saveState();
+    render();
+  }
+
+  function addPlayer() {
+    const nameInput = document.getElementById('newPlayerName');
+    const colorInput = document.getElementById('newPlayerColor');
+    const name = nameInput.value.trim();
+    if (!name) return;
+    state.players.push({
+      id: 'p_' + Date.now() + Math.random().toString(36).slice(2, 5),
+      name,
+      color: colorInput.value,
+      meeple: 0,
+      messenger: 0,
+      robberTarget: null
+    });
+    nameInput.value = '';
+    if (colorInput.selectedIndex < colorInput.options.length - 1) colorInput.selectedIndex++;
+    saveState();
+    render();
+  }
+
+  function removeSetupPlayer(id) {
+    state.players = state.players.filter(p => p.id !== id);
+    saveState();
+    render();
+  }
+
+  function startGame() {
+    if (state.players.length < 2) {
+      alert('Add at least 2 players to start.');
+      return;
+    }
+    state.started = true;
+    state.logs.unshift('Game started with ' + state.players.map(p => p.name).join(', ') + '.');
+    saveState();
+    render();
+  }
+
+  function resetGame() {
+    if (!confirm('Reset the entire game and clear all scores?')) return;
+    try { localStorage.removeItem('carcassonne_mr_state'); } catch (e) {}
+    state = { started: false, finalScoring: false, players: [], logs: [] };
+    historyStack = [];
+    document.getElementById('btnUndo').disabled = true;
+    hideBanner('bannerMessage');
+    hideBanner('bannerRobbery');
+    closeRobberModal();
+    render();
+  }
+
+  function quickScore(pts) {
+    document.getElementById('scorePoints').value = pts;
+    applyScore();
+  }
+
+  function applyScore() {
+    const playerId = document.getElementById('scorePlayer').value;
+    const piece = state.finalScoring ? 'meeple' : document.getElementById('scorePiece').value;
+    const points = parseInt(document.getElementById('scorePoints').value, 10);
+    const isActiveTurn = document.getElementById('isActiveTurn').checked;
+    if (!playerId || isNaN(points) || points <= 0) return;
+
+    pushHistory();
+    hideBanner('bannerMessage');
+    hideBanner('bannerRobbery');
+
+    const scorer = state.players.find(p => p.id === playerId);
+    const oldScore = scorer[piece];
+    const newScore = oldScore + points;
+
+    const attachedRobbers = state.players.filter(
+      p => p.robberTarget && p.robberTarget.playerId === scorer.id && p.robberTarget.piece === piece
+    );
+
+    if (attachedRobbers.length > 0) {
+      const stolenPoints = Math.ceil(points / 2);
+      const robberyMessages = [];
+      attachedRobbers.forEach(thief => {
+        thief.meeple += stolenPoints;
+        thief.robberTarget = null;
+        robberyMessages.push(thief.name + ' stole ' + stolenPoints + ' pts (+Meeple) & recovered their Robber!');
+        state.logs.unshift('🦹 ' + thief.name + "'s robber stole " + stolenPoints + ' pts from ' + scorer.name + "'s " + piece + '!');
+      });
+      showBanner('bannerRobbery', robberyMessages.join(' | '));
+    }
+
+    scorer[piece] = newScore;
+
+    const pieceLabel = state.finalScoring ? 'Total' : (piece === 'meeple' ? 'Meeple' : 'Messenger');
+    state.logs.unshift(scorer.name + ' scored +' + points + ' on ' + pieceLabel + ' (' + oldScore + ' → ' + newScore + ').');
+
+    if (!state.finalScoring && isActiveTurn && newScore % 5 === 0) {
+      showBanner('bannerMessage', '📜 DARK SPACE (' + newScore + ')! ' + scorer.name + ' draws a Message tile!');
+      state.logs.unshift('📜 ' + scorer.name + ' landed on Dark Space ' + newScore + ' and triggered a Message draw.');
+    }
+
+    document.getElementById('scorePoints').value = '';
+    saveState();
+    render();
+  }
+
+  function toggleFinalScoring() {
+    if (state.finalScoring) return;
+    if (!confirm("Enter Final Scoring? This combines each player's Meeple and Messenger scores into one total and disables Message draws.")) return;
+    pushHistory();
+    state.finalScoring = true;
+    state.players.forEach(p => {
+      state.players.forEach(other => {
+        if (other.robberTarget && other.robberTarget.playerId === p.id && other.robberTarget.piece === 'messenger') {
+          other.robberTarget.piece = 'meeple';
+        }
+      });
+      p.meeple += p.messenger;
+      p.messenger = 0;
+    });
+    state.logs.unshift('🏁 Entered Final Scoring: Meeple and Messenger scores combined.');
+    saveState();
+    render();
+  }
+
+  function openRobberModal(ownerId) {
+    activeRobberPlacerId = ownerId;
+    const owner = state.players.find(p => p.id === ownerId);
+    document.getElementById('robberOwnerName').textContent = owner.name;
+    const select = document.getElementById('robberTargetSelect');
+    select.innerHTML = '';
+    state.players.forEach(target => {
+      if (target.id === ownerId) return;
+      const add = (value, label) => {
+        const opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = label;
+        select.appendChild(opt);
+      };
+      if (state.finalScoring) {
+        add(target.id + ':meeple', target.name + ' (Score: ' + target.meeple + ')');
+      } else {
+        add(target.id + ':meeple', target.name + ' — Meeple (at ' + target.meeple + ')');
+        add(target.id + ':messenger', target.name + ' — Messenger (at ' + target.messenger + ')');
+      }
+    });
+    document.getElementById('robberModal').classList.remove('hidden');
+  }
+
+  function closeRobberModal() {
+    activeRobberPlacerId = null;
+    document.getElementById('robberModal').classList.add('hidden');
+  }
+
+  function confirmPlaceRobber() {
+    if (!activeRobberPlacerId) return;
+    const val = document.getElementById('robberTargetSelect').value;
+    if (!val) return;
+    pushHistory();
+    const [targetId, piece] = val.split(':');
+    const owner = state.players.find(p => p.id === activeRobberPlacerId);
+    const target = state.players.find(p => p.id === targetId);
+    owner.robberTarget = { playerId: targetId, piece };
+    state.logs.unshift('🦹 ' + owner.name + ' placed their Robber on ' + target.name + "'s " + piece + ' (at ' + target[piece] + ').');
+    closeRobberModal();
+    saveState();
+    render();
+  }
+
+  function recallRobber(ownerId) {
+    pushHistory();
+    const owner = state.players.find(p => p.id === ownerId);
+    owner.robberTarget = null;
+    state.logs.unshift('↩ ' + owner.name + ' returned their Robber to supply.');
+    saveState();
+    render();
+  }
+
+  function showBanner(id, text) {
+    document.getElementById(id + 'Text').textContent = text;
+    document.getElementById(id).classList.add('show');
+  }
+
+  function hideBanner(id) {
+    document.getElementById(id).classList.remove('show');
+  }
+
+  function render() {
+    const setupView = document.getElementById('setupView');
+    const gameView = document.getElementById('gameView');
+
+    if (!state.started) {
+      setupView.classList.remove('hidden');
+      gameView.classList.add('hidden');
+      document.getElementById('btnFinalPhase').classList.add('hidden');
+      document.getElementById('setupPlayerList').innerHTML = state.players.map(p =>
+        '<div style="background:var(--bg); padding:6px 12px; border-radius:20px; border:1px solid var(--border); display:flex; align-items:center; gap:8px;">' +
+        '<span class="dot" style="background:' + p.color + '"></span>' +
+        '<span>' + esc(p.name) + '</span>' +
+        '<span style="cursor:pointer; color:var(--robber); font-weight:bold;" onclick="removeSetupPlayer(\'' + p.id + '\')">×</span>' +
+        '</div>'
+      ).join('');
+      return;
+    }
+
+    setupView.classList.add('hidden');
+    gameView.classList.remove('hidden');
+    document.getElementById('btnFinalPhase').classList.remove('hidden');
+    document.getElementById('btnFinalPhase').disabled = state.finalScoring;
+    document.getElementById('scorePiece').classList.toggle('hidden', state.finalScoring);
+    document.getElementById('phaseNotice').classList.toggle('hidden', !state.finalScoring);
+
+    const playerSelect = document.getElementById('scorePlayer');
+    const prevSelected = playerSelect.value;
+    playerSelect.innerHTML = state.players.map(p => '<option value="' + p.id + '">' + esc(p.name) + '</option>').join('');
+    if (prevSelected && state.players.some(p => p.id === prevSelected)) playerSelect.value = prevSelected;
+
+    document.getElementById('playerGrid').innerHTML = state.players.map(p => {
+      const total = p.meeple + p.messenger;
+      const robbersOn = piece => state.players.filter(t => t.robberTarget && t.robberTarget.playerId === p.id && t.robberTarget.piece === piece);
+      const robberTags = piece => robbersOn(piece).map(t => '<span class="robber-tag">🦹 ' + esc(t.name) + "'s Robber here</span>").join('');
+
+      let robberStatusHTML;
+      if (p.robberTarget) {
+        const victim = state.players.find(v => v.id === p.robberTarget.playerId);
+        const targetLabel = state.finalScoring ? 'Score' : p.robberTarget.piece;
+        robberStatusHTML =
+          '<span style="color:#fca5a5;">🦹 Robbing <strong>' + esc(victim ? victim.name : '?') + '</strong> (' + targetLabel + ')</span>' +
+          '<button class="secondary" style="padding:3px 8px; font-size:0.75rem;" onclick="recallRobber(\'' + p.id + '\')">Recall</button>';
+      } else {
+        robberStatusHTML =
+          '<span style="color:var(--muted);">🦹 Robber in supply</span>' +
+          '<button class="danger" style="padding:3px 8px; font-size:0.75rem;" onclick="openRobberModal(\'' + p.id + '\')">Place Robber</button>';
+      }
+
+      const meepleRow =
+        '<div class="piece-row"><div class="piece-info">' +
+        '<span class="piece-label">' + (state.finalScoring ? 'Combined Score' : 'Meeple Track') + '</span>' +
+        '<div><span class="piece-score">' + p.meeple + '</span>' +
+        (!state.finalScoring && p.meeple % 5 === 0 ? '<span class="dark-tag">DARK</span>' : '') + '</div>' +
+        robberTags('meeple') + '</div></div>';
+
+      const messengerRow = state.finalScoring ? '' :
+        '<div class="piece-row"><div class="piece-info">' +
+        '<span class="piece-label">Messenger Track</span>' +
+        '<div><span class="piece-score">' + p.messenger + '</span>' +
+        (p.messenger % 5 === 0 ? '<span class="dark-tag">DARK</span>' : '') + '</div>' +
+        robberTags('messenger') + '</div></div>';
+
+      return '<div class="player-card" style="border-color:' + p.color + '">' +
+        '<div class="player-header">' +
+        '<div class="player-name"><span class="dot" style="background:' + p.color + '"></span>' + esc(p.name) + '</div>' +
+        '<div class="total-badge">' + total + '</div></div>' +
+        meepleRow + messengerRow +
+        '<div class="robber-status">' + robberStatusHTML + '</div>' +
+        '</div>';
+    }).join('');
+
+    document.getElementById('gameLog').innerHTML = state.logs.map(l => '<div>' + esc(l) + '</div>').join('');
+  }
+
+  render();
+</script>
+</body>
+</html>
