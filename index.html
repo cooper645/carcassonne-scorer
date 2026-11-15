@@ -1,7 +1,3 @@
-Claude
-
-
-Index · HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,12 +38,12 @@ Index · HTML
   button.mini { padding: 1px 8px; font-size: 0.95rem; line-height: 1.3; background: var(--border); }
   input, select { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px 10px; border-radius: 6px; font-size: 0.95rem; }
   input[type=checkbox] { padding: 0; }
- 
+
   .banner { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600; display: none; justify-content: space-between; align-items: center; gap: 10px; }
   .banner.show { display: flex; }
   .banner.message { background: rgba(245, 158, 11, 0.2); border: 1px solid var(--dark-space); color: #fcd34d; }
   .banner.robbery { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--robber); color: #fca5a5; }
- 
+
   .setup-box, .score-panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-bottom: 20px; }
   .player-card { background: var(--card); border: 2px solid var(--border); border-radius: 10px; padding: 14px; position: relative; }
@@ -55,30 +51,30 @@ Index · HTML
   .player-name { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
   .dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,0.3); flex-shrink: 0; }
   .total-badge { font-size: 1.3rem; font-weight: 800; }
- 
+
   .piece-row { display: flex; justify-content: space-between; align-items: center; background: var(--bg); padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; gap: 8px; flex-wrap: wrap; }
   .piece-info { display: flex; flex-direction: column; }
   .piece-label { font-size: 0.8rem; color: var(--muted); }
   .piece-score { font-size: 1.15rem; font-weight: 700; }
   .dark-tag { font-size: 0.7rem; background: var(--dark-space); color: #000; padding: 2px 5px; border-radius: 4px; font-weight: 700; margin-left: 6px; }
   .robber-tag { font-size: 0.75rem; background: var(--robber); color: #fff; padding: 2px 6px; border-radius: 4px; margin-top: 4px; display: inline-block; }
- 
+
   .robber-status { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
- 
+
   .controls-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   .quick-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
   .quick-btns button { padding: 6px 10px; background: var(--border); font-size: 0.85rem; }
- 
+
   .log { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; max-height: 200px; overflow-y: auto; font-size: 0.85rem; color: var(--muted); }
   .log div { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
   .hidden { display: none !important; }
- 
+
   /* ---------- Expansions picker ---------- */
   .exp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; margin-bottom: 12px; }
   .exp-item { display: flex; gap: 8px; align-items: flex-start; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; cursor: pointer; font-size: 0.9rem; }
   .exp-item input { margin-top: 3px; }
   .exp-item small { color: var(--muted); }
- 
+
   /* ---------- Breakdown ---------- */
   .cat-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--bg); margin: 8px 0 6px; }
   .cat-bar span { display: block; height: 100%; }
@@ -88,13 +84,13 @@ Index · HTML
   .goods { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .good { display: inline-flex; align-items: center; gap: 4px; }
   .good b { min-width: 16px; text-align: center; }
- 
+
   .helper { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-top: 12px; }
   .helper label { display: inline-flex; align-items: center; gap: 5px; font-size: 0.85rem; }
   .helper input[type=number] { width: 70px; }
   .helper-result { margin-top: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.95rem; }
   .helper-result small { color: var(--muted); }
- 
+
   .results { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 20px; overflow-x: auto; }
   .results h3 { margin: 0 0 8px; font-size: 0.95rem; color: var(--muted); }
   .results table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
@@ -102,7 +98,7 @@ Index · HTML
   .results th:first-child, .results td:first-child { text-align: left; }
   .results td.tot { font-weight: 800; font-size: 1rem; }
   .results tr.win td { background: rgba(245,158,11,0.12); }
- 
+
   /* ---------- Drawn board ---------- */
   .board {
     display: grid;
@@ -131,7 +127,7 @@ Index · HTML
   .legend-keys .tok { filter: none; margin: 0; width: 1.4em; height: 1.4em; }
   .legend-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; }
   .legend-row .lap { color: var(--dark-space); font-weight: 700; }
- 
+
   /* ---------- Photo board ---------- */
   .board-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
   .board-tools button { padding: 6px 12px; font-size: 0.85rem; }
@@ -172,7 +168,7 @@ Index · HTML
       <button class="danger" onclick="resetGame()">Reset</button>
     </div>
   </header>
- 
+
   <div id="bannerMessage" class="banner message">
     <span id="bannerMessageText"></span>
     <button class="warning" style="padding:4px 10px;" onclick="hideBanner('bannerMessage')">Dismiss</button>
@@ -181,7 +177,7 @@ Index · HTML
     <span id="bannerRobberyText"></span>
     <button class="danger" style="padding:4px 10px;" onclick="hideBanner('bannerRobbery')">Dismiss</button>
   </div>
- 
+
   <div id="setupView" class="setup-box">
     <h2 style="margin-top:0; font-size:1.1rem;">New Game Setup</h2>
     <h3 style="font-size:0.95rem; color:var(--muted); margin:0 0 8px;">1. Players</h3>
@@ -202,17 +198,17 @@ Index · HTML
     <div id="expPickerSetup"></div>
     <button onclick="startGame()" style="background:var(--success); width:100%; padding:10px; margin-top:6px;">Start Game</button>
   </div>
- 
+
   <div id="gameView" class="hidden">
     <div id="expPanel" class="setup-box hidden">
       <h3 style="margin:0 0 10px; font-size:1rem;">Expansions in this game</h3>
       <div id="expPickerGame"></div>
     </div>
- 
+
     <div id="phaseNotice" class="hidden" style="background:rgba(16,185,129,0.15); border:1px solid var(--success); padding:10px 14px; border-radius:8px; margin-bottom:14px; color:#6ee7b7; font-size:0.9rem;">
       <strong>Final Scoring Mode:</strong> tracks are combined and trade-goods / gold bonuses have been added. Enter any remaining end-game points (fields, unfinished features) with the right source. Dark-space draws are off; Robbers still trigger if attached.
     </div>
- 
+
     <div class="score-panel">
       <div id="turnBar" class="turn-bar hidden">
         <span>🎯 Turn: <strong id="turnName"></strong></span>
@@ -230,7 +226,7 @@ Index · HTML
         <button onclick="applyScore()">Add Points</button>
         <button class="secondary" onclick="toggleHelper()">🧮 Score helper</button>
       </div>
- 
+
       <div id="helper" class="helper hidden">
         <div class="controls-row">
           <select id="hFeature" onchange="helperUpdate()"></select>
@@ -255,7 +251,7 @@ Index · HTML
           <button onclick="useHelper()">Use this value</button>
         </div>
       </div>
- 
+
       <div class="quick-btns">
         <span style="font-size:0.8rem; color:var(--muted); align-self:center;">Quick:</span>
         <button onclick="quickScore(2)">+2</button>
@@ -266,7 +262,7 @@ Index · HTML
         <button onclick="quickScore(9)">+9</button>
       </div>
     </div>
- 
+
     <div class="board-tools">
       <button id="btnHideBoard" class="secondary" onclick="toggleBoardVisible()">🙈 Hide board</button>
       <span id="boardExtra" class="board-extra">
@@ -275,7 +271,7 @@ Index · HTML
         <button class="secondary" onclick="copySpots()">Copy positions</button>
       </span>
     </div>
- 
+
     <div id="calibBar" class="calib-bar hidden">
       <span id="calibText"></span>
       <span style="display:flex; gap:8px;">
@@ -283,7 +279,7 @@ Index · HTML
         <button class="danger" onclick="calibCancel()">Cancel</button>
       </span>
     </div>
- 
+
     <div id="photoBoard" class="photo-board hidden">
       <img id="boardImg" src="board.jpg" alt="Carcassonne scoring board" draggable="false" onload="renderPhotoBoard()" onerror="boardImgError()">
       <div id="photoTokens" class="photo-tokens"></div>
@@ -292,13 +288,13 @@ Index · HTML
     </div>
     <div id="imgError" class="img-error hidden">Couldn't load board.jpg. Make sure the file is in the repo root and named exactly <code>board.jpg</code> (lowercase).</div>
     <div id="photoLegend" class="photo-legend hidden"></div>
- 
+
     <div id="board" class="board"></div>
- 
+
     <div id="playerGrid" class="grid"></div>
- 
+
     <div id="results" class="results"></div>
- 
+
     <div id="robberModal" class="setup-box hidden" style="border-color: var(--robber);">
       <h3 style="margin-top:0; font-size:1rem; color:#fca5a5;">Place <span id="robberOwnerName"></span>'s Robber</h3>
       <div class="controls-row">
@@ -307,22 +303,22 @@ Index · HTML
         <button class="secondary" onclick="closeRobberModal()">Cancel</button>
       </div>
     </div>
- 
+
     <h3 style="font-size:0.95rem; color:var(--muted); margin-bottom:6px;">Game Log</h3>
     <div id="gameLog" class="log"></div>
   </div>
- 
+
   <footer>
     <a href="https://github.com/cooper645/carcassonne-scorer#readme" target="_blank" rel="noopener">📖 README &amp; help</a> ·
     <a href="https://github.com/cooper645/carcassonne-scorer" target="_blank" rel="noopener">GitHub repo</a>
   </footer>
 </div>
- 
+
 <script>
   const $ = id => document.getElementById(id);
- 
+
   /* ---------- Static data ---------- */
- 
+
   const EXPANSIONS = [
     { id: 'river',     name: 'The River',           note: 'Setup only. Nothing to score.' },
     { id: 'abbot',     name: 'The Abbot',           note: 'Adds the Garden scoring source.' },
@@ -336,7 +332,7 @@ Index · HTML
     { id: 'robbers',   name: 'The Robbers',         note: 'Robbers steal half of the next points scored on a track.' },
     { id: 'crop',      name: 'The Crop Circles',    note: 'No scoring. Nothing tracked.' }
   ];
- 
+
   const CATS = {
     city:      { label: 'City',          icon: '🏰', color: '#f97316' },
     road:      { label: 'Road',          icon: '🛣️', color: '#a78bfa' },
@@ -351,27 +347,27 @@ Index · HTML
     other:     { label: 'Other',         icon: '➕', color: '#9aa5b1' }
   };
   const CAT_ORDER = ['city', 'road', 'field', 'monastery', 'garden', 'message', 'goods', 'gold', 'magic', 'stolen', 'other'];
- 
+
   const GOODS = [
     { id: 'cloth',  label: 'Cloth',  icon: '🧵' },
     { id: 'barrel', label: 'Barrel', icon: '🛢️' },
     { id: 'wheat',  label: 'Wheat',  icon: '🌾' }
   ];
   const GOODS_BONUS = 10;
- 
+
   const TRACK_LEN = 50;
   const BOARD_W = 15;
   const BOARD_H = 12;
- 
+
   // Optional: paste the output of "Copy positions" here (replacing null) so every device shares the calibration.
   const BAKED_SPOTS = null;
- 
+
   /* ---------- State ---------- */
- 
+
   function freshState() {
     return { started: false, finalScoring: false, turn: 0, expansions: {}, players: [], logs: [] };
   }
- 
+
   let state = freshState();
   let historyStack = [];
   let activeRobberPlacerId = null;
@@ -379,17 +375,17 @@ Index · HTML
   let calibSpots = [];
   let boardMode = null;
   let imgFailed = false;
- 
+
   function esc(s) {
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
- 
+
   function emptyCats() {
     const c = {};
     CAT_ORDER.forEach(k => c[k] = 0);
     return c;
   }
- 
+
   function normalizeState(s) {
     const base = freshState();
     s = Object.assign(base, s || {});
@@ -409,19 +405,19 @@ Index · HTML
     s.turn = (Number.isInteger(s.turn) && s.turn >= 0 && s.turn < s.players.length) ? s.turn : 0;
     return s;
   }
- 
+
   try {
     const saved = localStorage.getItem('carcassonne_mr_state');
     if (saved) state = normalizeState(JSON.parse(saved));
   } catch (e) { state = freshState(); }
- 
+
   function exp(id) { return !!(state.expansions && state.expansions[id]); }
- 
+
   function validSpots(a) {
     return Array.isArray(a) && a.length === TRACK_LEN &&
       a.every(p => Array.isArray(p) && p.length === 2 && isFinite(p[0]) && isFinite(p[1]));
   }
- 
+
   function loadSpots() {
     try {
       const s = JSON.parse(localStorage.getItem('carcassonne_mr_spots'));
@@ -429,22 +425,22 @@ Index · HTML
     } catch (e) {}
     return validSpots(BAKED_SPOTS) ? BAKED_SPOTS : null;
   }
- 
+
   let spots = loadSpots();
   let boardHidden = false;
   try { boardMode = localStorage.getItem('carcassonne_mr_boardmode'); } catch (e) {}
   try { boardHidden = localStorage.getItem('carcassonne_mr_boardhidden') === '1'; } catch (e) {}
- 
+
   function saveState() {
     try { localStorage.setItem('carcassonne_mr_state', JSON.stringify(state)); } catch (e) {}
   }
- 
+
   function pushHistory() {
     historyStack.push(JSON.stringify(state));
     if (historyStack.length > 40) historyStack.shift();
     $('btnUndo').disabled = false;
   }
- 
+
   function undo() {
     if (!historyStack.length) return;
     state = normalizeState(JSON.parse(historyStack.pop()));
@@ -454,11 +450,11 @@ Index · HTML
     saveState();
     render();
   }
- 
+
   function log(msg) { state.logs.unshift(msg); }
- 
+
   /* ---------- Setup ---------- */
- 
+
   function addPlayer() {
     const nameInput = $('newPlayerName');
     const colorInput = $('newPlayerColor');
@@ -480,13 +476,13 @@ Index · HTML
     saveState();
     render();
   }
- 
+
   function removeSetupPlayer(id) {
     state.players = state.players.filter(p => p.id !== id);
     saveState();
     render();
   }
- 
+
   function startGame() {
     if (state.players.length < 2) {
       alert('Add at least 2 players to start.');
@@ -500,7 +496,7 @@ Index · HTML
     saveState();
     render();
   }
- 
+
   function resetGame() {
     if (!confirm('Reset the entire game and clear all scores? (Your board calibration is kept.)')) return;
     try { localStorage.removeItem('carcassonne_mr_state'); } catch (e) {}
@@ -516,9 +512,9 @@ Index · HTML
     calibSpots = [];
     render();
   }
- 
+
   /* ---------- Expansions picker ---------- */
- 
+
   function expPickerHTML() {
     let h = '<div class="exp-grid">' + EXPANSIONS.map(e =>
       '<label class="exp-item"><input type="checkbox" ' + (exp(e.id) ? 'checked ' : '') +
@@ -531,7 +527,7 @@ Index · HTML
     h += '</div>';
     return h;
   }
- 
+
   function toggleExpansion(id, on) {
     state.expansions[id] = !!on;
     if (id === 'messengers' && !on) {
@@ -541,18 +537,18 @@ Index · HTML
     saveState();
     render();
   }
- 
+
   function setAllExpansions(on) {
     EXPANSIONS.forEach(e => state.expansions[e.id] = on);
     if (!on) state.players.forEach(p => { if (p.robberTarget) p.robberTarget.piece = 'meeple'; });
     saveState();
     render();
   }
- 
+
   function toggleExpPanel() { $('expPanel').classList.toggle('hidden'); }
- 
+
   /* ---------- Scoring ---------- */
- 
+
   function availableCats() {
     const c = ['city', 'road', 'field', 'monastery'];
     if (exp('abbot')) c.push('garden');
@@ -561,7 +557,7 @@ Index · HTML
     c.push('other');
     return c;
   }
- 
+
   function changeTurn(d) {
     const n = state.players.length;
     if (!n) return;
@@ -573,12 +569,12 @@ Index · HTML
     saveState();
     render();
   }
- 
+
   function quickScore(pts) {
     $('scorePoints').value = pts;
     applyScore();
   }
- 
+
   function applyScore() {
     const playerId = $('scorePlayer').value;
     const cat = $('scoreCat').value || 'other';
@@ -590,18 +586,18 @@ Index · HTML
       alert('Negative points are only allowed for the Magician/Witch or Other source.');
       return;
     }
- 
+
     pushHistory();
     hideBanner('bannerMessage');
     hideBanner('bannerRobbery');
- 
+
     const scorer = state.players.find(p => p.id === playerId);
     const turnPlayer = state.players[state.turn];
     const isActiveTurn = !!turnPlayer && turnPlayer.id === scorer.id;
     const oldScore = scorer[piece];
     const newScore = Math.max(0, oldScore + points);
     const delta = newScore - oldScore;
- 
+
     if (delta > 0 && exp('robbers')) {
       const attachedRobbers = state.players.filter(
         p => p.robberTarget && p.robberTarget.playerId === scorer.id && p.robberTarget.piece === piece
@@ -619,30 +615,30 @@ Index · HTML
         showBanner('bannerRobbery', msgs.join(' | '));
       }
     }
- 
+
     scorer[piece] = newScore;
     scorer.cats[cat] += delta;
- 
+
     const pieceLabel = state.finalScoring ? 'Total' : (twoTracks ? (piece === 'meeple' ? 'Meeple' : 'Messenger') : 'Score');
     log(scorer.name + ' ' + (delta >= 0 ? '+' : '') + delta + ' ' + CATS[cat].label + ' on ' + pieceLabel + ' (' + oldScore + ' → ' + newScore + ').');
- 
+
     if (twoTracks && isActiveTurn && delta > 0 && newScore % 5 === 0) {
       showBanner('bannerMessage', '📜 DARK SPACE (' + newScore + ')! ' + scorer.name + ' draws a Message tile!');
       log('📜 ' + scorer.name + ' landed on Dark Space ' + newScore + ' and triggered a Message draw.');
     }
- 
+
     $('scorePoints').value = '';
     saveState();
     render();
   }
- 
+
   /* ---------- Score helper ---------- */
- 
+
   function toggleHelper() {
     $('helper').classList.toggle('hidden');
     helperRefresh();
   }
- 
+
   function helperRefresh() {
     const sel = $('hFeature');
     const prev = sel.value;
@@ -653,7 +649,7 @@ Index · HTML
     if (opts.some(o => o[0] === prev)) sel.value = prev;
     helperUpdate();
   }
- 
+
   function helperCalc() {
     const f = $('hFeature').value;
     const num = id => Math.max(0, parseInt($(id).value, 10) || 0);
@@ -665,7 +661,7 @@ Index · HTML
     const inn = exp('inns') && $('hInn').checked;
     const pig = exp('traders') && $('hPig').checked;
     let pts = 0, why = '';
- 
+
     if (f === 'city') {
       const n = tiles + pen;
       const per = complete ? (cath ? 3 : 2) : (cath ? 0 : 1);
@@ -683,7 +679,7 @@ Index · HTML
       pts = cities * per;
       why = cities + ' completed cities × ' + per;
     }
- 
+
     // Mage / Witch: only on cities and roads. Mage adds 1 per tile (not per pennant).
     // Witch halves the total after cathedral / inn bonuses, rounded up. Both apply to unfinished features at game end.
     const magic = (exp('magician') && (f === 'city' || f === 'road')) ? $('hMagic').value : 'none';
@@ -697,7 +693,7 @@ Index · HTML
     }
     return { f, pts, why };
   }
- 
+
   function helperUpdate() {
     const f = $('hFeature').value;
     const show = (id, on) => $(id).classList.toggle('hidden', !on);
@@ -714,7 +710,7 @@ Index · HTML
     $('hResult').textContent = r.pts;
     $('hExplain').textContent = r.why;
   }
- 
+
   function useHelper() {
     const r = helperCalc();
     $('scoreCat').value = r.f;
@@ -722,9 +718,9 @@ Index · HTML
     $('hMagic').value = 'none';
     helperUpdate();
   }
- 
+
   /* ---------- Goods & gold ---------- */
- 
+
   function adjGood(pid, g, d) {
     if (state.finalScoring) return;
     const p = state.players.find(x => x.id === pid);
@@ -737,7 +733,7 @@ Index · HTML
     saveState();
     render();
   }
- 
+
   function adjGold(pid, d) {
     if (state.finalScoring) return;
     const p = state.players.find(x => x.id === pid);
@@ -750,7 +746,7 @@ Index · HTML
     saveState();
     render();
   }
- 
+
   // 1-3 bars = 1 pt each, 4-6 = 2 each, 7-9 = 3 each, 10+ = 4 each
   function goldPerBar(n) {
     if (n >= 10) return 4;
@@ -758,11 +754,11 @@ Index · HTML
     if (n >= 4) return 2;
     return n >= 1 ? 1 : 0;
   }
- 
+
   function goldPoints(n) {
     return n * goldPerBar(n);
   }
- 
+
   function computeEndBonuses() {
     const res = {};
     state.players.forEach(p => res[p.id] = { goods: 0, gold: 0 });
@@ -788,9 +784,9 @@ Index · HTML
     }
     return { res, lines };
   }
- 
+
   /* ---------- Final scoring ---------- */
- 
+
   function toggleFinalScoring() {
     if (state.finalScoring) return;
     const bonus = computeEndBonuses();
@@ -798,7 +794,7 @@ Index · HTML
     if (bonus.lines.length) msg += '\n\nThese end-game bonuses will be added:\n• ' + bonus.lines.join('\n• ');
     else if (exp('traders') || exp('gold')) msg += '\n\nNo trade-goods or gold bonuses to add.';
     if (!confirm(msg)) return;
- 
+
     pushHistory();
     state.finalScoring = true;
     state.players.forEach(p => {
@@ -827,9 +823,9 @@ Index · HTML
     saveState();
     render();
   }
- 
+
   /* ---------- Robbers ---------- */
- 
+
   function openRobberModal(ownerId) {
     activeRobberPlacerId = ownerId;
     const owner = state.players.find(p => p.id === ownerId);
@@ -854,12 +850,12 @@ Index · HTML
     });
     $('robberModal').classList.remove('hidden');
   }
- 
+
   function closeRobberModal() {
     activeRobberPlacerId = null;
     $('robberModal').classList.add('hidden');
   }
- 
+
   function confirmPlaceRobber() {
     if (!activeRobberPlacerId) return;
     const val = $('robberTargetSelect').value;
@@ -874,7 +870,7 @@ Index · HTML
     saveState();
     render();
   }
- 
+
   function recallRobber(ownerId) {
     pushHistory();
     const owner = state.players.find(p => p.id === ownerId);
@@ -883,34 +879,34 @@ Index · HTML
     saveState();
     render();
   }
- 
+
   function showBanner(id, text) {
     $(id + 'Text').textContent = text;
     $(id).classList.add('show');
   }
- 
+
   function hideBanner(id) {
     $(id).classList.remove('show');
   }
- 
+
   /* ---------- Token graphics ---------- */
- 
+
   const MEEPLE_SHAPE = '<circle cx="12" cy="6" r="4"/><path d="M12 10C8 10 7 12 5 13L2 12V15L6 17L7 22H10L12 19L14 22H17L18 17L22 15V12L19 13C17 12 16 10 12 10Z"/>';
- 
+
   function meepleSVG(color) {
     return '<svg viewBox="0 0 24 24" fill="' + color + '" stroke="#fff" stroke-width="1">' + MEEPLE_SHAPE + '</svg>';
   }
- 
+
   function messengerSVG(color) {
     return '<svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2" fill="' + color + '" stroke="#fff" stroke-width="1.5"/>' +
            '<path d="M3 7L12 14L21 7" fill="none" stroke="#fff" stroke-width="1.5"/></svg>';
   }
- 
+
   function robberSVG(color) {
     return '<svg viewBox="0 0 24 24" fill="#111" stroke="' + color + '" stroke-width="2">' + MEEPLE_SHAPE +
            '<rect x="8" y="4.5" width="8" height="2" fill="#fff" stroke="none"/></svg>';
   }
- 
+
   function collectTokens() {
     const out = [];
     const twoTracks = exp('messengers') && !state.finalScoring;
@@ -944,7 +940,7 @@ Index · HTML
     }
     return out;
   }
- 
+
   function legendHTML() {
     const twoTracks = exp('messengers') && !state.finalScoring;
     const keys =
@@ -954,7 +950,7 @@ Index · HTML
       (exp('robbers') ? '<span><span class="tok">' + robberSVG('#9aa5b1') + '</span> Robber</span>' : '') +
       (exp('messengers') ? '<span style="color:var(--dark-space);">■ Dark space (every 5)</span>' : '') +
       '</div>';
- 
+
     const rows = state.players.map(p => {
       const lapM = Math.floor(p.meeple / TRACK_LEN);
       const lapG = Math.floor(p.messenger / TRACK_LEN);
@@ -968,12 +964,12 @@ Index · HTML
       }
       return '<div class="legend-row">' + line + '</div>';
     }).join('');
- 
+
     return keys + rows;
   }
- 
+
   /* ---------- Drawn board ---------- */
- 
+
   function trackCoords() {
     const c = [];
     for (let x = 1; x <= BOARD_W; x++) c.push([x, 1]);
@@ -982,36 +978,36 @@ Index · HTML
     for (let y = BOARD_H - 1; y >= 2; y--) c.push([1, y]);
     return c;
   }
- 
+
   function renderBoard() {
     const coords = trackCoords();
     const cells = coords.map(() => []);
     collectTokens().forEach(t => {
       cells[t.space].push('<span class="tok" title="' + esc(t.title) + '">' + t.svg + '</span>');
     });
- 
+
     let html = coords.map((xy, i) => {
       const cls = 'cell' + (exp('messengers') && i % 5 === 0 ? ' dark' : '') + (i === 0 ? ' start' : '');
       return '<div class="' + cls + '" style="grid-column:' + xy[0] + ';grid-row:' + xy[1] + ';">' +
         '<span class="cn">' + i + '</span><div class="toks">' + cells[i].join('') + '</div></div>';
     }).join('');
- 
+
     html += '<div class="board-center"><h4>Scoring Track (50 spaces, clockwise from top-left)</h4>' + legendHTML() + '</div>';
     $('board').innerHTML = html;
   }
- 
+
   /* ---------- Photo board + calibration ---------- */
- 
+
   function currentMode() {
     if (calibrating) return 'photo';
     if (!spots) return 'drawn';
     return boardMode === 'drawn' ? 'drawn' : 'photo';
   }
- 
+
   function saveBoardMode() {
     try { localStorage.setItem('carcassonne_mr_boardmode', boardMode || ''); } catch (e) {}
   }
- 
+
   function toggleBoardMode() {
     if (calibrating) return;
     if (currentMode() === 'photo') {
@@ -1023,18 +1019,18 @@ Index · HTML
     saveBoardMode();
     renderBoardArea();
   }
- 
+
   function saveBoardHidden() {
     try { localStorage.setItem('carcassonne_mr_boardhidden', boardHidden ? '1' : '0'); } catch (e) {}
   }
- 
+
   function toggleBoardVisible() {
     if (calibrating) return;
     boardHidden = !boardHidden;
     saveBoardHidden();
     renderBoardArea();
   }
- 
+
   function startCalibration() {
     if (spots && !confirm('Replace your saved board positions and start again?')) return;
     boardHidden = false;
@@ -1044,7 +1040,7 @@ Index · HTML
     renderBoardArea();
     $('photoBoard').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
- 
+
   function onCalibClick(e) {
     if (!calibrating) return;
     const r = e.currentTarget.getBoundingClientRect();
@@ -1054,19 +1050,19 @@ Index · HTML
     if (calibSpots.length >= TRACK_LEN) finishCalibration();
     else renderPhotoBoard();
   }
- 
+
   function calibUndo() {
     if (!calibrating || !calibSpots.length) return;
     calibSpots.pop();
     renderPhotoBoard();
   }
- 
+
   function calibCancel() {
     calibrating = false;
     calibSpots = [];
     renderBoardArea();
   }
- 
+
   function finishCalibration() {
     spots = calibSpots.slice();
     try { localStorage.setItem('carcassonne_mr_spots', JSON.stringify(spots)); } catch (e) {}
@@ -1076,7 +1072,7 @@ Index · HTML
     saveBoardMode();
     renderBoardArea();
   }
- 
+
   function copySpots() {
     if (!spots) { alert('No board positions saved yet. Click "Calibrate photo board" first.'); return; }
     const json = JSON.stringify(spots);
@@ -1089,18 +1085,18 @@ Index · HTML
       prompt('Copy these positions:', json);
     }
   }
- 
+
   function boardImgError() {
     imgFailed = true;
     $('imgError').classList.remove('hidden');
   }
- 
+
   function renderPhotoBoard() {
     const wrap = $('photoBoard');
     const layer = $('photoTokens');
     const marks = $('calibMarks');
     wrap.classList.toggle('calibrating', calibrating);
- 
+
     if (calibrating) {
       layer.innerHTML = '';
       marks.innerHTML = calibSpots.map((p, i) =>
@@ -1112,15 +1108,15 @@ Index · HTML
         : '📍 Click the centre of space <strong>' + n + '</strong> of 49 &nbsp;(' + n + ' of 50 placed)';
       return;
     }
- 
+
     marks.innerHTML = '';
     if (!spots) { layer.innerHTML = ''; return; }
- 
+
     const w = wrap.clientWidth || 600;
     const size = Math.max(14, Math.min(34, w * 0.04));
     const groups = spots.map(() => []);
     collectTokens().forEach(t => groups[t.space].push(t));
- 
+
     let html = '';
     groups.forEach((list, i) => {
       const n = list.length;
@@ -1137,7 +1133,7 @@ Index · HTML
     layer.innerHTML = html;
     $('photoLegend').innerHTML = legendHTML();
   }
- 
+
   function renderBoardArea() {
     const mode = currentMode();
     const hide = boardHidden && !calibrating;
@@ -1147,28 +1143,28 @@ Index · HTML
     $('photoLegend').classList.toggle('hidden', hide || mode !== 'photo' || calibrating || !spots);
     $('calibBar').classList.toggle('hidden', !calibrating);
     $('boardExtra').classList.toggle('hidden', hide);
- 
+
     const hideBtn = $('btnHideBoard');
     hideBtn.textContent = hide ? '👁 Show board' : '🙈 Hide board';
     hideBtn.disabled = calibrating;
- 
+
     const toggle = $('btnToggleBoard');
     toggle.textContent = mode === 'photo' ? 'Show drawn board' : 'Show photo board';
     toggle.disabled = calibrating;
- 
+
     if (hide) return;
     if (mode === 'photo') renderPhotoBoard();
     else renderBoard();
   }
- 
+
   window.addEventListener('resize', () => {
     if (state.started && currentMode() === 'photo') renderPhotoBoard();
   });
- 
+
   /* ---------- Player cards + results ---------- */
- 
+
   function playerTotal(p) { return p.meeple + p.messenger; }
- 
+
   function catBreakdownHTML(p) {
     const total = playerTotal(p);
     const unassigned = total - CAT_ORDER.reduce((s, k) => s + p.cats[k], 0);
@@ -1180,7 +1176,7 @@ Index · HTML
     const chips = '<div class="cat-chips">' + parts.map(x => '<span class="chip"><i style="background:' + x.c + '"></i>' + esc(x.l) + ' ' + x.v + '</span>').join('') + '</div>';
     return bar + chips;
   }
- 
+
   function playerCardHTML(p) {
     const twoTracks = exp('messengers') && !state.finalScoring;
     const total = playerTotal(p);
@@ -1189,7 +1185,7 @@ Index · HTML
       : [];
     const robberTags = piece => robbersOn(piece).map(t => '<span class="robber-tag">🦹 ' + esc(t.name) + "'s Robber here</span>").join('');
     const dark = v => (exp('messengers') && !state.finalScoring && v % 5 === 0) ? '<span class="dark-tag">DARK</span>' : '';
- 
+
     let robberStatusHTML = '';
     if (exp('robbers')) {
       if (p.robberTarget) {
@@ -1204,20 +1200,20 @@ Index · HTML
           '<button class="danger" style="padding:3px 8px; font-size:0.75rem;" onclick="openRobberModal(\'' + p.id + '\')">Place Robber</button></div>';
       }
     }
- 
+
     const meepleLabel = state.finalScoring ? 'Combined Score' : (twoTracks ? 'Meeple Track' : 'Score Track');
     const meepleRow =
       '<div class="piece-row"><div class="piece-info">' +
       '<span class="piece-label">' + meepleLabel + '</span>' +
       '<div><span class="piece-score">' + p.meeple + '</span>' + dark(p.meeple) + '</div>' +
       robberTags('meeple') + '</div></div>';
- 
+
     const messengerRow = !twoTracks ? '' :
       '<div class="piece-row"><div class="piece-info">' +
       '<span class="piece-label">Messenger Track</span>' +
       '<div><span class="piece-score">' + p.messenger + '</span>' + dark(p.messenger) + '</div>' +
       robberTags('messenger') + '</div></div>';
- 
+
     let goodsRow = '';
     if (exp('traders')) {
       goodsRow = '<div class="piece-row"><span class="piece-label">Trade goods</span><div class="goods">' +
@@ -1228,7 +1224,7 @@ Index · HTML
           '<button class="mini" ' + (state.finalScoring ? 'disabled ' : '') + 'onclick="adjGood(\'' + p.id + '\',\'' + g.id + '\',1)">+</button></span>'
         ).join('') + '</div></div>';
     }
- 
+
     let goldRow = '';
     if (exp('gold')) {
       goldRow = '<div class="piece-row"><span class="piece-label">🪙 Gold bars <small>(' + goldPerBar(p.gold) + ' each = ' + goldPoints(p.gold) + ' pts at end)</small></span><span class="good">' +
@@ -1236,7 +1232,7 @@ Index · HTML
         '<b>' + p.gold + '</b>' +
         '<button class="mini" ' + (state.finalScoring ? 'disabled ' : '') + 'onclick="adjGold(\'' + p.id + '\',1)">+</button></span></div>';
     }
- 
+
     const isTurn = twoTracks && state.players[state.turn] && state.players[state.turn].id === p.id;
     return '<div class="player-card' + (isTurn ? ' turn' : '') + '" style="border-color:' + p.color + '">' +
       '<div class="player-header">' +
@@ -1245,7 +1241,7 @@ Index · HTML
       meepleRow + messengerRow + catBreakdownHTML(p) + goodsRow + goldRow + robberStatusHTML +
       '</div>';
   }
- 
+
   function resultsHTML() {
     const rows = state.players.map(p => {
       const total = playerTotal(p);
@@ -1254,11 +1250,11 @@ Index · HTML
       cats.un = total - CAT_ORDER.reduce((s, k) => s + p.cats[k], 0);
       return { p, total, cats };
     }).sort((a, b) => b.total - a.total);
- 
+
     const cols = CAT_ORDER.filter(k => rows.some(r => r.cats[k] !== 0));
     const showUn = rows.some(r => r.cats.un !== 0);
     const top = rows.length ? rows[0].total : 0;
- 
+
     let h = '<h3>' + (state.finalScoring ? '🏆 Results' : 'Points by source') + '</h3><table><thead><tr><th>Player</th><th>Total</th>' +
       cols.map(k => '<th title="' + CATS[k].label + '">' + CATS[k].icon + ' ' + CATS[k].label + '</th>').join('') +
       (showUn ? '<th>Unassigned</th>' : '') + '</tr></thead><tbody>';
@@ -1271,13 +1267,13 @@ Index · HTML
     });
     return h + '</tbody></table>';
   }
- 
+
   /* ---------- Main render ---------- */
- 
+
   function render() {
     const setupView = $('setupView');
     const gameView = $('gameView');
- 
+
     if (!state.started) {
       setupView.classList.remove('hidden');
       gameView.classList.add('hidden');
@@ -1293,7 +1289,7 @@ Index · HTML
       $('expPickerSetup').innerHTML = expPickerHTML();
       return;
     }
- 
+
     setupView.classList.add('hidden');
     gameView.classList.remove('hidden');
     $('btnFinalPhase').classList.remove('hidden');
@@ -1301,41 +1297,39 @@ Index · HTML
     $('btnExp').classList.remove('hidden');
     $('phaseNotice').classList.toggle('hidden', !state.finalScoring);
     $('expPickerGame').innerHTML = expPickerHTML();
- 
+
     // Score panel controls
     const twoTracks = exp('messengers') && !state.finalScoring;
     $('scorePiece').classList.toggle('hidden', !twoTracks);
     $('turnBar').classList.toggle('hidden', !twoTracks);
     if (twoTracks && state.players[state.turn]) $('turnName').textContent = state.players[state.turn].name;
- 
+
     const playerSelect = $('scorePlayer');
     const prevPlayer = playerSelect.value;
     playerSelect.innerHTML = state.players.map(p => '<option value="' + p.id + '">' + esc(p.name) + '</option>').join('');
     if (prevPlayer && state.players.some(p => p.id === prevPlayer)) playerSelect.value = prevPlayer;
- 
+
     const pieceSelect = $('scorePiece');
     const prevPiece = pieceSelect.value;
     pieceSelect.innerHTML = '<option value="meeple">Move Meeple</option><option value="messenger">Move Messenger</option>';
     if (prevPiece === 'messenger' || prevPiece === 'meeple') pieceSelect.value = prevPiece;
- 
+
     const catSelect = $('scoreCat');
     const prevCat = catSelect.value;
     const avail = availableCats();
     catSelect.innerHTML = avail.map(k => '<option value="' + k + '">' + CATS[k].icon + ' ' + CATS[k].label + '</option>').join('');
     if (avail.indexOf(prevCat) !== -1) catSelect.value = prevCat;
- 
+
     if (!$('helper').classList.contains('hidden')) helperRefresh();
- 
+
     renderBoardArea();
- 
+
     $('playerGrid').innerHTML = state.players.map(playerCardHTML).join('');
     $('results').innerHTML = resultsHTML();
     $('gameLog').innerHTML = state.logs.map(l => '<div>' + esc(l) + '</div>').join('');
   }
- 
+
   render();
 </script>
 </body>
 </html>
- 
-Claude finished the response
