@@ -44,13 +44,14 @@
 5. Use **Place Robber** on a player card to attach a robber to an opponent's track. New banner above the Game Log to select meeple to stalk (can be recalled if placed in error).
 6. At the end of the game, click **Final Scoring**. The confirmation lists the bonuses that will be added.
 7. Enter any remaining end-game points (fields, unfinished features), then check the results table.
+8. 8. **Messengers only:** use **Next turn ▶** to move the turn marker around the table. A Message tile is only drawn when the player whose turn it is lands on a dark space. With Messengers off, turn tracking isn't shown, because nothing depends on it.
 
 ## Scoring rules used
 
 - **Trade goods:** 10 points to the player with the most Cloth, 10 for Barrels and 10 for Wheat. Tied players each get the 10. Nothing is awarded if nobody holds any.
 - **Gold bars:** 1-3 bars score 1 point each, 4-6 score 2 each, 7-9 score 3 each, 10+ score 4 each.
 - **Robbers:** steal half the points scored (rounded up) on the track they sit on, then return to their owner.
-- **Dark spaces:** with Messengers on, landing on a multiple of 5 on your own turn means drawing a Message tile.
+- **Dark spaces (Messengers only):** landing on a multiple of 5 during your own turn means drawing a Message tile. The app works this out from the turn marker.
 
 ## Fork and host your own
 
