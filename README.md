@@ -95,14 +95,28 @@ docker compose up -d --build
 
 ## Project structure
 
-| File | Purpose |
-|------|---------|
-| `index.html` | The whole app (HTML, CSS and JavaScript) |
-| `board.jpg` | Photo of the scoring board used as the track background |
-| `Dockerfile` | Builds a small Nginx container serving the app |
-| `docker-compose.yml` | Runs the container on port 8085 |
-| `LICENSE` | Licensing |
-| `README.md` | This ReadMe and basic instructions for use |
+```
+carcassonne-scorer/
+├── index.html                 The whole app (HTML, CSS and JavaScript)
+├── board.jpg                  Photo of the scoring board used as the track background
+├── icon.svg                   App icon (browser tab)
+├── icon-192.png               App icon (home screen / install)
+├── icon-512.png               App icon (home screen / install)
+├── icon-maskable-512.png      App icon (Android adaptive shape)
+├── apple-touch-icon.png       App icon (iPhone / iPad home screen)
+├── manifest.webmanifest       Lets the site be installed to a home screen or dock
+├── Dockerfile                 Builds a small Nginx container serving the app
+├── docker-compose.yml         Runs the container on port 8085
+├── LICENSE                    Licence for reuse
+├── README.md                  This file
+└── .github/
+    ├── ISSUE_TEMPLATE/        Templates for bug reports and feature requests
+    ├── ACCESSIBILITY.md       Accessibility statement
+    ├── CODE_OF_CONDUCT.md     Community standards
+    ├── CONTRIBUTING.md        How to contribute
+    ├── SECURITY.md            How to report a security issue
+    └── pull_request_template.md   Template for pull requests
+```
 
 ## Notes
 
