@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carcassonne Scorer — Big Box</title>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1e2229">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Carcassonne">
+<style>
+  :root {
+    --bg: #1e2229;
+    --card: #282d37;
+    --border: #3a4150;
+    --text: #f0f4f8;
+    --muted: #9aa5b1;
+    --accent: #3b82f6;
+    --dark-space: #f59e0b;
+    --robber: #ef4444;
+    --success: #10b981;
+  }
+  * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--text); }
+  .container { max-width: 960px; margin: 0 auto; }
+  header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+  h1 { margin: 0; font-size: 1.4rem; }
+  button { background: var(--accent); color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+  button:hover { opacity: 0.9; }
+  button.secondary { background: var(--border); }
+  button.danger { background: var(--robber); }
+  button.warning { background: var(--dark-space); color: #111; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.mini { padding: 1px 8px; font-size: 0.95rem; line-height: 1.3; background: var(--border); }
+  input, select { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px 10px; border-radius: 6px; font-size: 0.95rem; }
+  input[type=checkbox] { padding: 0; }
+
+  .banner { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600; display: none; justify-content: space-between; align-items: center; gap: 10px; }
+  .banner.show { display: flex; }
+  .banner.message { background: rgba(245, 158, 11, 0.2); border: 1px solid var(--dark-space); color: #fcd34d; }
+  .banner.robbery { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--robber); color: #fca5a5; }
+
+  .setup-box, .score-panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .player-card { background: var(--card); border: 2px solid var(--border); border-radius: 10px; padding: 14px; position: relative; }
+  .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  .player-name { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,0.3); flex-shrink: 0; }
+  .total-badge { font-size: 1.3rem; font-weight: 800; }
+
+  .piece-row { display: flex; justify-content: space-between; align-items: center; background: var(--bg); padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; gap: 8px; flex-wrap: wrap; }
+  .piece-info { display: flex; flex-direction: column; }
+  .piece-label { font-size: 0.8rem; color: var(--muted); }
+  .piece-score { font-size: 1.15rem; font-weight: 700; }
+  .dark-tag { font-size: 0.7rem; background: var(--dark-space); color: #000; padding: 2px 5px; border-radius: 4px; font-weight: 700; margin-left: 6px; }
+  .robber-tag { font-size: 0.75rem; background: var(--robber); color: #fff; padding: 2px 6px; border-radius: 4px; margin-top: 4px; display: inline-block; }
+
+  .robber-status { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+  .controls-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .quick-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .quick-btns button { padding: 6px 10px; background: var(--border); font-size: 0.85rem; }
+
+  .log { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; max-height: 200px; overflow-y: auto; font-size: 0.85rem; color: var(--muted); }
+  .log div { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .hidden { display: none !important; }
+
+  /* ---------- Expansions picker ---------- */
+  .exp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .exp-item { display: flex; gap: 8px; align-items: flex-start; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; cursor: pointer; font-size: 0.9rem; }
+  .exp-item input { margin-top: 3px; }
+  .exp-item small { color: var(--muted); }
+
+  /* ---------- Breakdown ---------- */
+  .cat-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--bg); margin: 8px 0 6px; }
+  .cat-bar span { display: block; height: 100%; }
+  .cat-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+  .chip { font-size: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 2px 8px; white-space: nowrap; }
+  .chip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+  .goods { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .good { display: inline-flex; align-items: center; gap: 4px; }
+  .good b { min-width: 16px; text-align: center; }
+
+  .helper { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-top: 12px; }
+  .helper label { display: inline-flex; align-items: center; gap: 5px; font-size: 0.85rem; }
+  .helper input[type=number] { width: 70px; }
+  .helper-result { margin-top: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.95rem; }
+  .helper-result small { color: var(--muted); }
+
+  .results { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 20px; overflow-x: auto; }
+  .results h3 { margin: 0 0 8px; font-size: 0.95rem; color: var(--muted); }
+  .results table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+  .results th, .results td { padding: 6px 8px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07); white-space: nowrap; }
+  .results th:first-child, .results td:first-child { text-align: left; }
+  .results td.tot { font-weight: 800; font-size: 1rem; }
+  .results tr.win td { background: rgba(245,158,11,0.12); }
+
+  /* ---------- Drawn board ---------- */
+  .board {
+    display: grid;
+    grid-template-columns: repeat(15, minmax(0, 1fr));
+    grid-template-rows: repeat(12, minmax(0, 1fr));
+    gap: 2px;
+    aspect-ratio: 15 / 12;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px;
+    margin-bottom: 20px;
+  }
+  .cell { position: relative; background: #323947; border-radius: 4px; min-width: 0; min-height: 0; overflow: hidden; }
+  .cell.dark { background: #5a4310; box-shadow: inset 0 0 0 1px var(--dark-space); }
+  .cell.start { box-shadow: inset 0 0 0 2px var(--success); }
+  .cn { position: absolute; top: 1px; left: 2px; font-size: clamp(6px, 1.2vw, 10px); color: var(--muted); line-height: 1; pointer-events: none; }
+  .cell.dark .cn { color: #fcd34d; font-weight: 700; }
+  .toks { position: absolute; inset: 0; padding-top: clamp(6px, 1.3vw, 11px); display: flex; flex-wrap: wrap; align-content: center; justify-content: center; }
+  .tok { display: block; width: clamp(9px, 2.3vw, 22px); height: clamp(9px, 2.3vw, 22px); margin: -1px; filter: drop-shadow(0 0 1px #fff); }
+  .tok svg { width: 100%; height: 100%; display: block; }
+  .board-center { grid-column: 2 / 15; grid-row: 2 / 12; background: var(--bg); border-radius: 8px; padding: 10px 14px; overflow: auto; font-size: clamp(9px, 1.7vw, 14px); }
+  .board-center h4 { margin: 0 0 6px; font-size: 1.05em; }
+  .legend-keys { display: flex; flex-wrap: wrap; gap: 10px; color: var(--muted); margin-bottom: 8px; align-items: center; }
+  .legend-keys span { display: inline-flex; align-items: center; gap: 4px; }
+  .legend-keys .tok { filter: none; margin: 0; width: 1.4em; height: 1.4em; }
+  .legend-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; }
+  .legend-row .lap { color: var(--dark-space); font-weight: 700; }
+
+  /* ---------- Photo board ---------- */
+  .board-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .board-tools button { padding: 6px 12px; font-size: 0.85rem; }
+  .board-extra { display: contents; }
+  .turn-bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; background: rgba(59,130,246,0.12); border: 1px solid var(--accent); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; }
+  .turn-bar small { color: var(--muted); flex-basis: 100%; }
+  .player-card.turn { box-shadow: 0 0 0 2px var(--accent); }
+  .turn-tag { font-size: 0.7rem; background: var(--accent); color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px; }
+  a.btn-link { display: inline-block; background: var(--border); color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; }
+  a.btn-link:hover { opacity: 0.9; }
+  footer { margin: 24px 0 8px; text-align: center; font-size: 0.85rem; color: var(--muted); }
+  footer a { color: #93c5fd; }
+  .calib-bar { background: rgba(59,130,246,0.15); border: 1px solid var(--accent); color: #93c5fd; padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; font-size: 0.9rem; }
+  .calib-bar button { padding: 5px 10px; font-size: 0.8rem; }
+  .photo-board { position: relative; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 10px; background: var(--card); }
+  .photo-board img { width: 100%; display: block; user-select: none; -webkit-user-drag: none; }
+  .photo-tokens, .calib-marks, .calib-layer { position: absolute; inset: 0; }
+  .photo-tokens, .calib-marks { pointer-events: none; }
+  .calib-layer { display: none; cursor: crosshair; }
+  .photo-board.calibrating .calib-layer { display: block; }
+  .ptok { position: absolute; filter: drop-shadow(0 0 2px #000) drop-shadow(0 0 1px #fff); }
+  .ptok svg { width: 100%; height: 100%; display: block; }
+  .cmark { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: rgba(59,130,246,0.9); color: #fff; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); border: 1px solid #fff; }
+  .cmark.first { background: var(--success); }
+  .img-error { padding: 14px; color: #fca5a5; font-size: 0.9rem; }
+  .photo-legend { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; margin-bottom: 20px; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🏰 Carcassonne Scorer <span style="font-size:0.85rem; color:var(--muted); font-weight:normal;">(Big Box)</span></h1>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button id="btnUndo" class="secondary" onclick="undo()" disabled>↩ Undo</button>
+      <button id="btnExp" class="secondary hidden" onclick="toggleExpPanel()">⚙ Expansions</button>
+      <button id="btnFinalPhase" class="warning" onclick="toggleFinalScoring()">🏁 Final Scoring</button>
+      <a class="btn-link" href="https://github.com/cooper645/carcassonne-scorer#readme" target="_blank" rel="noopener">📖 Help</a>
+      <button class="danger" onclick="resetGame()">Reset</button>
+    </div>
+  </header>
+
+  <div id="bannerMessage" class="banner message">
+    <span id="bannerMessageText"></span>
+    <button class="warning" style="padding:4px 10px;" onclick="hideBanner('bannerMessage')">Dismiss</button>
+  </div>
+  <div id="bannerRobbery" class="banner robbery">
+    <span id="bannerRobberyText"></span>
+    <button class="danger" style="padding:4px 10px;" onclick="hideBanner('bannerRobbery')">Dismiss</button>
+  </div>
+
+  <div id="setupView" class="setup-box">
+    <h2 style="margin-top:0; font-size:1.1rem;">New Game Setup</h2>
+    <h3 style="font-size:0.95rem; color:var(--muted); margin:0 0 8px;">1. Players</h3>
+    <div class="controls-row" style="margin-bottom:12px;">
+      <input type="text" id="newPlayerName" placeholder="Player name..." onkeypress="if(event.key==='Enter') addPlayer()">
+      <select id="newPlayerColor">
+        <option value="#ef4444">Red</option>
+        <option value="#3b82f6">Blue</option>
+        <option value="#10b981">Green</option>
+        <option value="#eab308">Yellow</option>
+        <option value="#1f2937">Black</option>
+        <option value="#ec4899">Pink</option>
+      </select>
+      <button onclick="addPlayer()">+ Add Player</button>
+    </div>
+    <div id="setupPlayerList" style="margin-bottom:18px; display:flex; flex-wrap:wrap; gap:8px;"></div>
+    <h3 style="font-size:0.95rem; color:var(--muted); margin:0 0 8px;">2. Expansions in this game</h3>
+    <div id="expPickerSetup"></div>
+    <button onclick="startGame()" style="background:var(--success); width:100%; padding:10px; margin-top:6px;">Start Game</button>
+  </div>
+
+  <div id="gameView" class="hidden">
+    <div id="expPanel" class="setup-box hidden">
+      <h3 style="margin:0 0 10px; font-size:1rem;">Expansions in this game</h3>
+      <div id="expPickerGame"></div>
+    </div>
+
+    <div id="phaseNotice" class="hidden" style="background:rgba(16,185,129,0.15); border:1px solid var(--success); padding:10px 14px; border-radius:8px; margin-bottom:14px; color:#6ee7b7; font-size:0.9rem;">
+      <strong>Final Scoring Mode:</strong> tracks are combined and trade-goods / gold bonuses have been added. Enter any remaining end-game points (fields, unfinished features) with the right source. Dark-space draws are off; Robbers still trigger if attached.
+    </div>
+
+    <div class="score-panel">
+      <div id="turnBar" class="turn-bar hidden">
+        <span>🎯 Turn: <strong id="turnName"></strong></span>
+        <span style="display:flex; gap:6px;">
+          <button class="secondary" onclick="changeTurn(-1)" title="Previous player">◀</button>
+          <button onclick="changeTurn(1)">Next turn ▶</button>
+        </span>
+        <small>Message tiles are only drawn when the player whose turn it is lands on a dark space.</small>
+      </div>
+      <div class="controls-row">
+        <select id="scorePlayer"></select>
+        <select id="scoreCat" title="Where did the points come from?"></select>
+        <select id="scorePiece"></select>
+        <input type="number" id="scorePoints" placeholder="Points" style="width:95px;">
+        <button onclick="applyScore()">Add Points</button>
+        <button class="secondary" onclick="toggleHelper()">🧮 Score helper</button>
+      </div>
+
+      <div id="helper" class="helper hidden">
+        <div class="controls-row">
+          <select id="hFeature" onchange="helperUpdate()"></select>
+          <label id="hTilesWrap"><span id="hTilesLabel">Tiles</span> <input type="number" id="hTiles" min="0" value="2" oninput="helperUpdate()"></label>
+          <label id="hPennantsWrap">Pennants <input type="number" id="hPennants" min="0" value="0" oninput="helperUpdate()"></label>
+          <label id="hCitiesWrap">Completed cities <input type="number" id="hCities" min="0" value="1" oninput="helperUpdate()"></label>
+          <label id="hCompleteWrap"><input type="checkbox" id="hComplete" checked onchange="helperUpdate()"> Completed</label>
+          <label id="hCathWrap"><input type="checkbox" id="hCath" onchange="helperUpdate()"> Cathedral</label>
+          <label id="hInnWrap"><input type="checkbox" id="hInn" onchange="helperUpdate()"> Inn</label>
+          <label id="hPigWrap"><input type="checkbox" id="hPig" onchange="helperUpdate()"> Pig (4 per city)</label>
+        </div>
+        <div class="helper-result">
+          <span>= <strong id="hResult">0</strong> pts</span>
+          <small id="hExplain"></small>
+          <button onclick="useHelper()">Use this value</button>
+        </div>
+      </div>
+
+      <div class="quick-btns">
+        <span style="font-size:0.8rem; color:var(--muted); align-self:center;">Quick:</span>
+        <button onclick="quickScore(2)">+2</button>
+        <button onclick="quickScore(3)">+3</button>
+        <button onclick="quickScore(4)">+4</button>
+        <button onclick="quickScore(6)">+6</button>
+        <button onclick="quickScore(8)">+8</button>
+        <button onclick="quickScore(9)">+9</button>
+      </div>
+    </div>
+
+    <div class="board-tools">
+      <button id="btnHideBoard" class="secondary" onclick="toggleBoardVisible()">🙈 Hide board</button>
+      <span id="boardExtra" class="board-extra">
+        <button class="secondary" onclick="startCalibration()">📍 Calibrate photo board</button>
+        <button id="btnToggleBoard" class="secondary" onclick="toggleBoardMode()">Show drawn board</button>
+        <button class="secondary" onclick="copySpots()">Copy positions</button>
+      </span>
+    </div>
+
+    <div id="calibBar" class="calib-bar hidden">
+      <span id="calibText"></span>
+      <span style="display:flex; gap:8px;">
+        <button class="secondary" onclick="calibUndo()">Undo last click</button>
+        <button class="danger" onclick="calibCancel()">Cancel</button>
+      </span>
+    </div>
+
+    <div id="photoBoard" class="photo-board hidden">
+      <img id="boardImg" src="board.jpg" alt="Carcassonne scoring board" draggable="false" onload="renderPhotoBoard()" onerror="boardImgError()">
+      <div id="photoTokens" class="photo-tokens"></div>
+      <div id="calibMarks" class="calib-marks"></div>
+      <div id="calibLayer" class="calib-layer" onclick="onCalibClick(event)"></div>
+    </div>
+    <div id="imgError" class="img-error hidden">Couldn't load board.jpg. Make sure the file is in the repo root and named exactly <code>board.jpg</code> (lowercase).</div>
+    <div id="photoLegend" class="photo-legend hidden"></div>
+
+    <div id="board" class="board"></div>
+
+    <div id="playerGrid" class="grid"></div>
+
+    <div id="results" class="results"></div>
+
+    <div id="robberModal" class="setup-box hidden" style="border-color: var(--robber);">
+      <h3 style="margin-top:0; font-size:1rem; color:#fca5a5;">Place <span id="robberOwnerName"></span>'s Robber</h3>
+      <div class="controls-row">
+        <select id="robberTargetSelect"></select>
+        <button class="danger" onclick="confirmPlaceRobber()">Attach Robber</button>
+        <button class="secondary" onclick="closeRobberModal()">Cancel</button>
+      </div>
+    </div>
+
+    <h3 style="font-size:0.95rem; color:var(--muted); margin-bottom:6px;">Game Log</h3>
+    <div id="gameLog" class="log"></div>
+  </div>
+
+  <footer>
+    <a href="https://github.com/cooper645/carcassonne-scorer#readme" target="_blank" rel="noopener">📖 README &amp; help</a> ·
+    <a href="https://github.com/cooper645/carcassonne-scorer" target="_blank" rel="noopener">GitHub repo</a>
+  </footer>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  /* ---------- Static data ---------- */
+
+  const EXPANSIONS = [
+    { id: 'river',     name: 'The River',           note: 'Setup only. Nothing to score.' },
+    { id: 'abbot',     name: 'The Abbot',           note: 'Adds the Garden scoring source.' },
+    { id: 'inns',      name: 'Inns & Cathedrals',   note: 'Inn and Cathedral options in the Score helper.' },
+    { id: 'traders',   name: 'Traders & Builders',  note: 'Tracks Cloth, Barrels and Wheat (10-pt end bonus each). Pig in Score helper.' },
+    { id: 'flying',    name: 'The Flying Machines', note: 'No scoring. Nothing tracked.' },
+    { id: 'messengers',name: 'The Messengers',      note: 'Second (Messenger) track and dark-space Message draws.' },
+    { id: 'ferries',   name: 'The Ferries',         note: 'No scoring. Nothing tracked.' },
+    { id: 'gold',      name: 'The Gold Mines',      note: 'Tracks gold bars per player (1-3 = 1 pt each, 4-6 = 2, 7-9 = 3, 10+ = 4) and adds it at Final Scoring.' },
+    { id: 'magician',  name: 'Magician & Witch',    note: 'Adds a +/- Magician/Witch adjustment source.' },
+    { id: 'robbers',   name: 'The Robbers',         note: 'Robbers steal half of the next points scored on a track.' },
+    { id: 'crop',      name: 'The Crop Circles',    note: 'No scoring. Nothing tracked.' }
+  ];
+
+  const CATS = {
+    city:      { label: 'City',          icon: '🏰', color: '#f97316' },
+    road:      { label: 'Road',          icon: '🛣️', color: '#a78bfa' },
+    field:     { label: 'Field',         icon: '🌾', color: '#84cc16' },
+    monastery: { label: 'Monastery',     icon: '⛪', color: '#38bdf8' },
+    garden:    { label: 'Garden',        icon: '🌷', color: '#34d399' },
+    message:   { label: 'Message',       icon: '📜', color: '#fbbf24' },
+    goods:     { label: 'Trade goods',   icon: '📦', color: '#f472b6' },
+    gold:      { label: 'Gold',          icon: '🪙', color: '#facc15' },
+    magic:     { label: 'Magician/Witch',icon: '🧙', color: '#c084fc' },
+    stolen:    { label: 'Robbery',       icon: '🦹', color: '#ef4444' },
+    other:     { label: 'Other',         icon: '➕', color: '#9aa5b1' }
+  };
+  const CAT_ORDER = ['city', 'road', 'field', 'monastery', 'garden', 'message', 'goods', 'gold', 'magic', 'stolen', 'other'];
+
+  const GOODS = [
+    { id: 'cloth',  label: 'Cloth',  icon: '🧵' },
+    { id: 'barrel', label: 'Barrel', icon: '🛢️' },
+    { id: 'wheat',  label: 'Wheat',  icon: '🌾' }
+  ];
+  const GOODS_BONUS = 10;
+
+  const TRACK_LEN = 50;
+  const BOARD_W = 15;
+  const BOARD_H = 12;
+
+  // Optional: paste the output of "Copy positions" here (replacing null) so every device shares the calibration.
+  const BAKED_SPOTS = null;
+
+  /* ---------- State ---------- */
+
+  function freshState() {
+    return { started: false, finalScoring: false, turn: 0, expansions: {}, players: [], logs: [] };
+  }
+
+  let state = freshState();
+  let historyStack = [];
+  let activeRobberPlacerId = null;
+  let calibrating = false;
+  let calibSpots = [];
+  let boardMode = null;
+  let imgFailed = false;
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function emptyCats() {
+    const c = {};
+    CAT_ORDER.forEach(k => c[k] = 0);
+    return c;
+  }
+
+  function normalizeState(s) {
+    const base = freshState();
+    s = Object.assign(base, s || {});
+    // Saves from the earlier version had no expansion list but used Messengers + Robbers.
+    if (!s.expansions || typeof s.expansions !== 'object') s.expansions = { messengers: true, robbers: true };
+    delete s.goldMode;
+    s.players = (s.players || []).map(p => {
+      p.meeple = p.meeple || 0;
+      p.messenger = p.messenger || 0;
+      p.robberTarget = p.robberTarget || null;
+      p.cats = Object.assign(emptyCats(), p.cats || {});
+      p.goods = Object.assign({ cloth: 0, barrel: 0, wheat: 0 }, p.goods || {});
+      p.gold = p.gold || 0;
+      return p;
+    });
+    s.logs = s.logs || [];
+    s.turn = (Number.isInteger(s.turn) && s.turn >= 0 && s.turn < s.players.length) ? s.turn : 0;
+    return s;
+  }
+
+  try {
+    const saved = localStorage.getItem('carcassonne_mr_state');
+    if (saved) state = normalizeState(JSON.parse(saved));
+  } catch (e) { state = freshState(); }
+
+  function exp(id) { return !!(state.expansions && state.expansions[id]); }
+
+  function validSpots(a) {
+    return Array.isArray(a) && a.length === TRACK_LEN &&
+      a.every(p => Array.isArray(p) && p.length === 2 && isFinite(p[0]) && isFinite(p[1]));
+  }
+
+  function loadSpots() {
+    try {
+      const s = JSON.parse(localStorage.getItem('carcassonne_mr_spots'));
+      if (validSpots(s)) return s;
+    } catch (e) {}
+    return validSpots(BAKED_SPOTS) ? BAKED_SPOTS : null;
+  }
+
+  let spots = loadSpots();
+  let boardHidden = false;
+  try { boardMode = localStorage.getItem('carcassonne_mr_boardmode'); } catch (e) {}
+  try { boardHidden = localStorage.getItem('carcassonne_mr_boardhidden') === '1'; } catch (e) {}
+
+  function saveState() {
+    try { localStorage.setItem('carcassonne_mr_state', JSON.stringify(state)); } catch (e) {}
+  }
+
+  function pushHistory() {
+    historyStack.push(JSON.stringify(state));
+    if (historyStack.length > 40) historyStack.shift();
+    $('btnUndo').disabled = false;
+  }
+
+  function undo() {
+    if (!historyStack.length) return;
+    state = normalizeState(JSON.parse(historyStack.pop()));
+    $('btnUndo').disabled = historyStack.length === 0;
+    hideBanner('bannerMessage');
+    hideBanner('bannerRobbery');
+    saveState();
+    render();
+  }
+
+  function log(msg) { state.logs.unshift(msg); }
+
+  /* ---------- Setup ---------- */
+
+  function addPlayer() {
+    const nameInput = $('newPlayerName');
+    const colorInput = $('newPlayerColor');
+    const name = nameInput.value.trim();
+    if (!name) return;
+    state.players.push({
+      id: 'p_' + Date.now() + Math.random().toString(36).slice(2, 5),
+      name,
+      color: colorInput.value,
+      meeple: 0,
+      messenger: 0,
+      robberTarget: null,
+      cats: emptyCats(),
+      goods: { cloth: 0, barrel: 0, wheat: 0 },
+      gold: 0
+    });
+    nameInput.value = '';
+    if (colorInput.selectedIndex < colorInput.options.length - 1) colorInput.selectedIndex++;
+    saveState();
+    render();
+  }
+
+  function removeSetupPlayer(id) {
+    state.players = state.players.filter(p => p.id !== id);
+    saveState();
+    render();
+  }
+
+  function startGame() {
+    if (state.players.length < 2) {
+      alert('Add at least 2 players to start.');
+      return;
+    }
+    state.started = true;
+    state.turn = 0;
+    const on =EXPANSIONS.filter(e => exp(e.id)).map(e => e.name);
+    log('Game started with ' + state.players.map(p => p.name).join(', ') + '.');
+    log('Expansions: ' + (on.length ? on.join(', ') : 'base game only') + '.');
+    saveState();
+    render();
+  }
+
+  function resetGame() {
+    if (!confirm('Reset the entire game and clear all scores? (Your board calibration is kept.)')) return;
+    try { localStorage.removeItem('carcassonne_mr_state'); } catch (e) {}
+    state = freshState();
+    historyStack = [];
+    $('btnUndo').disabled = true;
+    hideBanner('bannerMessage');
+    hideBanner('bannerRobbery');
+    closeRobberModal();
+    $('expPanel').classList.add('hidden');
+    $('helper').classList.add('hidden');
+    calibrating = false;
+    calibSpots = [];
+    render();
+  }
+
+  /* ---------- Expansions picker ---------- */
+
+  function expPickerHTML() {
+    let h = '<div class="exp-grid">' + EXPANSIONS.map(e =>
+      '<label class="exp-item"><input type="checkbox" ' + (exp(e.id) ? 'checked ' : '') +
+      'onchange="toggleExpansion(\'' + e.id + '\', this.checked)">' +
+      '<span><strong>' + esc(e.name) + '</strong><br><small>' + esc(e.note) + '</small></span></label>'
+    ).join('') + '</div>';
+    h += '<div class="controls-row" style="margin-bottom:10px;">' +
+      '<button class="secondary" onclick="setAllExpansions(true)">Select all</button>' +
+      '<button class="secondary" onclick="setAllExpansions(false)">Clear all</button>';
+    h += '</div>';
+    return h;
+  }
+
+  function toggleExpansion(id, on) {
+    state.expansions[id] = !!on;
+    if (id === 'messengers' && !on) {
+      state.players.forEach(p => { if (p.robberTarget && p.robberTarget.piece === 'messenger') p.robberTarget.piece = 'meeple'; });
+    }
+    if (state.started) log((on ? 'Enabled ' : 'Disabled ') + EXPANSIONS.find(e => e.id === id).name + '.');
+    saveState();
+    render();
+  }
+
+  function setAllExpansions(on) {
+    EXPANSIONS.forEach(e => state.expansions[e.id] = on);
+    if (!on) state.players.forEach(p => { if (p.robberTarget) p.robberTarget.piece = 'meeple'; });
+    saveState();
+    render();
+  }
+
+  function toggleExpPanel() { $('expPanel').classList.toggle('hidden'); }
+
+  /* ---------- Scoring ---------- */
+
+  function availableCats() {
+    const c = ['city', 'road', 'field', 'monastery'];
+    if (exp('abbot')) c.push('garden');
+    if (exp('messengers')) c.push('message');
+    if (exp('magician')) c.push('magic');
+    c.push('other');
+    return c;
+  }
+
+  function changeTurn(d) {
+    const n = state.players.length;
+    if (!n) return;
+    pushHistory();
+    state.turn = (state.turn + d + n) % n;
+    const p = state.players[state.turn];
+    $('scorePlayer').value = p.id;
+    log('🎯 ' + p.name + "'s turn.");
+    saveState();
+    render();
+  }
+
+  function quickScore(pts) {
+    $('scorePoints').value = pts;
+    applyScore();
+  }
+
+  function applyScore() {
+    const playerId = $('scorePlayer').value;
+    const cat = $('scoreCat').value || 'other';
+    const twoTracks = exp('messengers') && !state.finalScoring;
+    const piece = twoTracks ? $('scorePiece').value : 'meeple';
+    const points = parseInt($('scorePoints').value, 10);
+    if (!playerId || isNaN(points) || points === 0) return;
+    if (points < 0 && cat !== 'magic' && cat !== 'other') {
+      alert('Negative points are only allowed for the Magician/Witch or Other source.');
+      return;
+    }
+
+    pushHistory();
+    hideBanner('bannerMessage');
+    hideBanner('bannerRobbery');
+
+    const scorer = state.players.find(p => p.id === playerId);
+    const turnPlayer = state.players[state.turn];
+    const isActiveTurn = !!turnPlayer && turnPlayer.id === scorer.id;
+    const oldScore = scorer[piece];
+    const newScore = Math.max(0, oldScore + points);
+    const delta = newScore - oldScore;
+
+    if (delta > 0 && exp('robbers')) {
+      const attachedRobbers = state.players.filter(
+        p => p.robberTarget && p.robberTarget.playerId === scorer.id && p.robberTarget.piece === piece
+      );
+      if (attachedRobbers.length > 0) {
+        const stolenPoints = Math.ceil(delta / 2);
+        const msgs = [];
+        attachedRobbers.forEach(thief => {
+          thief.meeple += stolenPoints;
+          thief.cats.stolen += stolenPoints;
+          thief.robberTarget = null;
+          msgs.push(thief.name + ' stole ' + stolenPoints + ' pts & recovered their Robber!');
+          log('🦹 ' + thief.name + "'s robber stole " + stolenPoints + ' pts from ' + scorer.name + "'s " + piece + '!');
+        });
+        showBanner('bannerRobbery', msgs.join(' | '));
+      }
+    }
+
+    scorer[piece] = newScore;
+    scorer.cats[cat] += delta;
+
+    const pieceLabel = state.finalScoring ? 'Total' : (twoTracks ? (piece === 'meeple' ? 'Meeple' : 'Messenger') : 'Score');
+    log(scorer.name + ' ' + (delta >= 0 ? '+' : '') + delta + ' ' + CATS[cat].label + ' on ' + pieceLabel + ' (' + oldScore + ' → ' + newScore + ').');
+
+    if (twoTracks && isActiveTurn && delta > 0 && newScore % 5 === 0) {
+      showBanner('bannerMessage', '📜 DARK SPACE (' + newScore + ')! ' + scorer.name + ' draws a Message tile!');
+      log('📜 ' + scorer.name + ' landed on Dark Space ' + newScore + ' and triggered a Message draw.');
+    }
+
+    $('scorePoints').value = '';
+    saveState();
+    render();
+  }
+
+  /* ---------- Score helper ---------- */
+
+  function toggleHelper() {
+    $('helper').classList.toggle('hidden');
+    helperRefresh();
+  }
+
+  function helperRefresh() {
+    const sel = $('hFeature');
+    const prev = sel.value;
+    const opts = [['city', 'City'], ['road', 'Road'], ['monastery', 'Monastery']];
+    if (exp('abbot')) opts.push(['garden', 'Garden']);
+    opts.push(['field', 'Field (farmers)']);
+    sel.innerHTML = opts.map(o => '<option value="' + o[0] + '">' + o[1] + '</option>').join('');
+    if (opts.some(o => o[0] === prev)) sel.value = prev;
+    helperUpdate();
+  }
+
+  function helperCalc() {
+    const f = $('hFeature').value;
+    const num = id => Math.max(0, parseInt($(id).value, 10) || 0);
+    const tiles = num('hTiles');
+    const pen = num('hPennants');
+    const cities = num('hCities');
+    const complete = $('hComplete').checked;
+    const cath = exp('inns') && $('hCath').checked;
+    const inn = exp('inns') && $('hInn').checked;
+    const pig = exp('traders') && $('hPig').checked;
+    let pts = 0, why = '';
+
+    if (f === 'city') {
+      const n = tiles + pen;
+      const per = complete ? (cath ? 3 : 2) : (cath ? 0 : 1);
+      pts = n * per;
+      why = n + ' tiles+pennants × ' + per + (complete ? ' (completed' : ' (unfinished') + (cath ? ', cathedral)' : ')');
+    } else if (f === 'road') {
+      const per = complete ? (inn ? 2 : 1) : (inn ? 0 : 1);
+      pts = tiles * per;
+      why = tiles + ' tiles × ' + per + (complete ? ' (completed' : ' (unfinished') + (inn ? ', inn)' : ')');
+    } else if (f === 'monastery' || f === 'garden') {
+      pts = Math.min(tiles, 9);
+      why = Math.min(tiles, 9) + ' tiles including the ' + f + ' (max 9)';
+    } else if (f === 'field') {
+      const per = pig ? 4 : 3;
+      pts = cities * per;
+      why = cities + ' completed cities × ' + per;
+    }
+    return { f, pts, why };
+  }
+
+  function helperUpdate() {
+    const f = $('hFeature').value;
+    const show = (id, on) => $(id).classList.toggle('hidden', !on);
+    show('hTilesWrap', f !== 'field');
+    show('hPennantsWrap', f === 'city');
+    show('hCitiesWrap', f === 'field');
+    show('hCompleteWrap', f === 'city' || f === 'road');
+    show('hCathWrap', f === 'city' && exp('inns'));
+    show('hInnWrap', f === 'road' && exp('inns'));
+    show('hPigWrap', f === 'field' && exp('traders'));
+    $('hTilesLabel').textContent = (f === 'monastery' || f === 'garden') ? 'Tiles (incl. centre)' : 'Tiles';
+    const r = helperCalc();
+    $('hResult').textContent = r.pts;
+    $('hExplain').textContent = r.why;
+  }
+
+  function useHelper() {
+    const r = helperCalc();
+    $('scoreCat').value = r.f;
+    $('scorePoints').value = r.pts;
+  }
+
+  /* ---------- Goods & gold ---------- */
+
+  function adjGood(pid, g, d) {
+    if (state.finalScoring) return;
+    const p = state.players.find(x => x.id === pid);
+    if (!p) return;
+    const nv = Math.max(0, p.goods[g] + d);
+    if (nv === p.goods[g]) return;
+    pushHistory();
+    p.goods[g] = nv;
+    log(p.name + ' ' + (d > 0 ? '+' : '−') + '1 ' + GOODS.find(x => x.id === g).label + ' (now ' + nv + ').');
+    saveState();
+    render();
+  }
+
+  function adjGold(pid, d) {
+    if (state.finalScoring) return;
+    const p = state.players.find(x => x.id === pid);
+    if (!p) return;
+    const nv = Math.max(0, p.gold + d);
+    if (nv === p.gold) return;
+    pushHistory();
+    p.gold = nv;
+    log(p.name + ' ' + (d > 0 ? '+' : '−') + '1 Gold (now ' + nv + ').');
+    saveState();
+    render();
+  }
+
+  // 1-3 bars = 1 pt each, 4-6 = 2 each, 7-9 = 3 each, 10+ = 4 each
+  function goldPerBar(n) {
+    if (n >= 10) return 4;
+    if (n >= 7) return 3;
+    if (n >= 4) return 2;
+    return n >= 1 ? 1 : 0;
+  }
+
+  function goldPoints(n) {
+    return n * goldPerBar(n);
+  }
+
+  function computeEndBonuses() {
+    const res = {};
+    state.players.forEach(p => res[p.id] = { goods: 0, gold: 0 });
+    const lines = [];
+    if (exp('traders')) {
+      GOODS.forEach(g => {
+        const max = Math.max(0, ...state.players.map(p => p.goods[g.id]));
+        if (max > 0) {
+          const winners = state.players.filter(p => p.goods[g.id] === max);
+          winners.forEach(p => res[p.id].goods += GOODS_BONUS);
+          lines.push(g.label + ' (' + max + '): ' + winners.map(w => w.name).join(', ') + ' +' + GOODS_BONUS + ' each');
+        }
+      });
+    }
+    if (exp('gold')) {
+      state.players.forEach(p => {
+        const v = goldPoints(p.gold);
+        if (v > 0) {
+          res[p.id].gold = v;
+          lines.push(p.name + ': ' + p.gold + ' gold bars × ' + goldPerBar(p.gold) + ' = +' + v);
+        }
+      });
+    }
+    return { res, lines };
+  }
+
+  /* ---------- Final scoring ---------- */
+
+  function toggleFinalScoring() {
+    if (state.finalScoring) return;
+    const bonus = computeEndBonuses();
+    let msg = "Enter Final Scoring?\n\nThis combines each player's tracks into one total and turns off Message draws.";
+    if (bonus.lines.length) msg += '\n\nThese end-game bonuses will be added:\n• ' + bonus.lines.join('\n• ');
+    else if (exp('traders') || exp('gold')) msg += '\n\nNo trade-goods or gold bonuses to add.';
+    if (!confirm(msg)) return;
+
+    pushHistory();
+    state.finalScoring = true;
+    state.players.forEach(p => {
+      state.players.forEach(other => {
+        if (other.robberTarget && other.robberTarget.playerId === p.id && other.robberTarget.piece === 'messenger') {
+          other.robberTarget.piece = 'meeple';
+        }
+      });
+      p.meeple += p.messenger;
+      p.messenger = 0;
+    });
+    log('🏁 Entered Final Scoring: tracks combined.');
+    state.players.forEach(p => {
+      const b = bonus.res[p.id];
+      if (b.goods) {
+        p.meeple += b.goods;
+        p.cats.goods += b.goods;
+        log('📦 ' + p.name + ' +' + b.goods + ' trade goods bonus.');
+      }
+      if (b.gold) {
+        p.meeple += b.gold;
+        p.cats.gold += b.gold;
+        log('🪙 ' + p.name + ' +' + b.gold + ' for ' + p.gold + ' gold.');
+      }
+    });
+    saveState();
+    render();
+  }
+
+  /* ---------- Robbers ---------- */
+
+  function openRobberModal(ownerId) {
+    activeRobberPlacerId = ownerId;
+    const owner = state.players.find(p => p.id === ownerId);
+    $('robberOwnerName').textContent = owner.name;
+    const select = $('robberTargetSelect');
+    select.innerHTML = '';
+    const twoTracks = exp('messengers') && !state.finalScoring;
+    state.players.forEach(target => {
+      if (target.id === ownerId) return;
+      const add = (value, label) => {
+        const opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = label;
+        select.appendChild(opt);
+      };
+      if (!twoTracks) {
+        add(target.id + ':meeple', target.name + ' (Score: ' + target.meeple + ')');
+      } else {
+        add(target.id + ':meeple', target.name + ' — Meeple (at ' + target.meeple + ')');
+        add(target.id + ':messenger', target.name + ' — Messenger (at ' + target.messenger + ')');
+      }
+    });
+    $('robberModal').classList.remove('hidden');
+  }
+
+  function closeRobberModal() {
+    activeRobberPlacerId = null;
+    $('robberModal').classList.add('hidden');
+  }
+
+  function confirmPlaceRobber() {
+    if (!activeRobberPlacerId) return;
+    const val = $('robberTargetSelect').value;
+    if (!val) return;
+    pushHistory();
+    const [targetId, piece] = val.split(':');
+    const owner = state.players.find(p => p.id === activeRobberPlacerId);
+    const target = state.players.find(p => p.id === targetId);
+    owner.robberTarget = { playerId: targetId, piece };
+    log('🦹 ' + owner.name + ' placed their Robber on ' + target.name + "'s " + piece + ' (at ' + target[piece] + ').');
+    closeRobberModal();
+    saveState();
+    render();
+  }
+
+  function recallRobber(ownerId) {
+    pushHistory();
+    const owner = state.players.find(p => p.id === ownerId);
+    owner.robberTarget = null;
+    log('↩ ' + owner.name + ' returned their Robber to supply.');
+    saveState();
+    render();
+  }
+
+  function showBanner(id, text) {
+    $(id + 'Text').textContent = text;
+    $(id).classList.add('show');
+  }
+
+  function hideBanner(id) {
+    $(id).classList.remove('show');
+  }
+
+  /* ---------- Token graphics ---------- */
+
+  const MEEPLE_SHAPE = '<circle cx="12" cy="6" r="4"/><path d="M12 10C8 10 7 12 5 13L2 12V15L6 17L7 22H10L12 19L14 22H17L18 17L22 15V12L19 13C17 12 16 10 12 10Z"/>';
+
+  function meepleSVG(color) {
+    return '<svg viewBox="0 0 24 24" fill="' + color + '" stroke="#fff" stroke-width="1">' + MEEPLE_SHAPE + '</svg>';
+  }
+
+  function messengerSVG(color) {
+    return '<svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2" fill="' + color + '" stroke="#fff" stroke-width="1.5"/>' +
+           '<path d="M3 7L12 14L21 7" fill="none" stroke="#fff" stroke-width="1.5"/></svg>';
+  }
+
+  function robberSVG(color) {
+    return '<svg viewBox="0 0 24 24" fill="#111" stroke="' + color + '" stroke-width="2">' + MEEPLE_SHAPE +
+           '<rect x="8" y="4.5" width="8" height="2" fill="#fff" stroke="none"/></svg>';
+  }
+
+  function collectTokens() {
+    const out = [];
+    const twoTracks = exp('messengers') && !state.finalScoring;
+    state.players.forEach(p => {
+      const lapsM = Math.floor(p.meeple / TRACK_LEN);
+      out.push({
+        space: p.meeple % TRACK_LEN,
+        svg: meepleSVG(p.color),
+        title: p.name + ' Meeple: ' + p.meeple + (lapsM ? ' (lap ' + (lapsM + 1) + ')' : '')
+      });
+      if (twoTracks) {
+        const lapsG = Math.floor(p.messenger / TRACK_LEN);
+        out.push({
+          space: p.messenger % TRACK_LEN,
+          svg: messengerSVG(p.color),
+          title: p.name + ' Messenger: ' + p.messenger + (lapsG ? ' (lap ' + (lapsG + 1) + ')' : '')
+        });
+      }
+    });
+    if (exp('robbers')) {
+      state.players.forEach(thief => {
+        if (!thief.robberTarget) return;
+        const victim = state.players.find(v => v.id === thief.robberTarget.playerId);
+        if (!victim) return;
+        out.push({
+          space: victim[thief.robberTarget.piece] % TRACK_LEN,
+          svg: robberSVG(thief.color),
+          title: thief.name + "'s Robber on " + victim.name + "'s " + thief.robberTarget.piece
+        });
+      });
+    }
+    return out;
+  }
+
+  function legendHTML() {
+    const twoTracks = exp('messengers') && !state.finalScoring;
+    const keys =
+      '<div class="legend-keys">' +
+      '<span><span class="tok">' + meepleSVG('#9aa5b1') + '</span> Meeple</span>' +
+      (twoTracks ? '<span><span class="tok">' + messengerSVG('#9aa5b1') + '</span> Messenger</span>' : '') +
+      (exp('robbers') ? '<span><span class="tok">' + robberSVG('#9aa5b1') + '</span> Robber</span>' : '') +
+      (exp('messengers') ? '<span style="color:var(--dark-space);">■ Dark space (every 5)</span>' : '') +
+      '</div>';
+
+    const rows = state.players.map(p => {
+      const lapM = Math.floor(p.meeple / TRACK_LEN);
+      const lapG = Math.floor(p.messenger / TRACK_LEN);
+      const lapText = n => n > 0 ? ' <span class="lap">+' + (n * TRACK_LEN) + '</span>' : '';
+      let line = '<span class="dot" style="background:' + p.color + '"></span><strong>' + esc(p.name) + '</strong> ' +
+        '<span>' + (twoTracks ? 'Meeple ' : 'Score ') + p.meeple + lapText(lapM) + '</span>';
+      if (twoTracks) line += '<span>· Messenger ' + p.messenger + lapText(lapG) + '</span>';
+      if (exp('robbers') && p.robberTarget) {
+        const v = state.players.find(x => x.id === p.robberTarget.playerId);
+        line += '<span>· 🦹 on ' + esc(v ? v.name : '?') + '</span>';
+      }
+      return '<div class="legend-row">' + line + '</div>';
+    }).join('');
+
+    return keys + rows;
+  }
+
+  /* ---------- Drawn board ---------- */
+
+  function trackCoords() {
+    const c = [];
+    for (let x = 1; x <= BOARD_W; x++) c.push([x, 1]);
+    for (let y = 2; y <= BOARD_H; y++) c.push([BOARD_W, y]);
+    for (let x = BOARD_W - 1; x >= 1; x--) c.push([x, BOARD_H]);
+    for (let y = BOARD_H - 1; y >= 2; y--) c.push([1, y]);
+    return c;
+  }
+
+  function renderBoard() {
+    const coords = trackCoords();
+    const cells = coords.map(() => []);
+    collectTokens().forEach(t => {
+      cells[t.space].push('<span class="tok" title="' + esc(t.title) + '">' + t.svg + '</span>');
+    });
+
+    let html = coords.map((xy, i) => {
+      const cls = 'cell' + (exp('messengers') && i % 5 === 0 ? ' dark' : '') + (i === 0 ? ' start' : '');
+      return '<div class="' + cls + '" style="grid-column:' + xy[0] + ';grid-row:' + xy[1] + ';">' +
+        '<span class="cn">' + i + '</span><div class="toks">' + cells[i].join('') + '</div></div>';
+    }).join('');
+
+    html += '<div class="board-center"><h4>Scoring Track (50 spaces, clockwise from top-left)</h4>' + legendHTML() + '</div>';
+    $('board').innerHTML = html;
+  }
+
+  /* ---------- Photo board + calibration ---------- */
+
+  function currentMode() {
+    if (calibrating) return 'photo';
+    if (!spots) return 'drawn';
+    return boardMode === 'drawn' ? 'drawn' : 'photo';
+  }
+
+  function saveBoardMode() {
+    try { localStorage.setItem('carcassonne_mr_boardmode', boardMode || ''); } catch (e) {}
+  }
+
+  function toggleBoardMode() {
+    if (calibrating) return;
+    if (currentMode() === 'photo') {
+      boardMode = 'drawn';
+    } else {
+      if (!spots) { startCalibration(); return; }
+      boardMode = 'photo';
+    }
+    saveBoardMode();
+    renderBoardArea();
+  }
+
+  function saveBoardHidden() {
+    try { localStorage.setItem('carcassonne_mr_boardhidden', boardHidden ? '1' : '0'); } catch (e) {}
+  }
+
+  function toggleBoardVisible() {
+    if (calibrating) return;
+    boardHidden = !boardHidden;
+    saveBoardHidden();
+    renderBoardArea();
+  }
+
+  function startCalibration() {
+    if (spots && !confirm('Replace your saved board positions and start again?')) return;
+    boardHidden = false;
+    saveBoardHidden();
+    calibrating = true;
+    calibSpots = [];
+    renderBoardArea();
+    $('photoBoard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function onCalibClick(e) {
+    if (!calibrating) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = Math.round((e.clientX - r.left) / r.width * 1000) / 10;
+    const y = Math.round((e.clientY - r.top) / r.height * 1000) / 10;
+    calibSpots.push([x, y]);
+    if (calibSpots.length >= TRACK_LEN) finishCalibration();
+    else renderPhotoBoard();
+  }
+
+  function calibUndo() {
+    if (!calibrating || !calibSpots.length) return;
+    calibSpots.pop();
+    renderPhotoBoard();
+  }
+
+  function calibCancel() {
+    calibrating = false;
+    calibSpots = [];
+    renderBoardArea();
+  }
+
+  function finishCalibration() {
+    spots = calibSpots.slice();
+    try { localStorage.setItem('carcassonne_mr_spots', JSON.stringify(spots)); } catch (e) {}
+    calibrating = false;
+    calibSpots = [];
+    boardMode = 'photo';
+    saveBoardMode();
+    renderBoardArea();
+  }
+
+  function copySpots() {
+    if (!spots) { alert('No board positions saved yet. Click "Calibrate photo board" first.'); return; }
+    const json = JSON.stringify(spots);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(json).then(
+        () => alert('Positions copied. You can paste them into BAKED_SPOTS in index.html to share them across devices.'),
+        () => prompt('Copy these positions:', json)
+      );
+    } else {
+      prompt('Copy these positions:', json);
+    }
+  }
+
+  function boardImgError() {
+    imgFailed = true;
+    $('imgError').classList.remove('hidden');
+  }
+
+  function renderPhotoBoard() {
+    const wrap = $('photoBoard');
+    const layer = $('photoTokens');
+    const marks = $('calibMarks');
+    wrap.classList.toggle('calibrating', calibrating);
+
+    if (calibrating) {
+      layer.innerHTML = '';
+      marks.innerHTML = calibSpots.map((p, i) =>
+        '<span class="cmark' + (i === 0 ? ' first' : '') + '" style="left:' + p[0] + '%;top:' + p[1] + '%;">' + i + '</span>'
+      ).join('');
+      const n = calibSpots.length;
+      $('calibText').innerHTML = n === 0
+        ? '📍 Click the centre of the <strong>START space</strong> (space 0).'
+        : '📍 Click the centre of space <strong>' + n + '</strong> of 49 &nbsp;(' + n + ' of 50 placed)';
+      return;
+    }
+
+    marks.innerHTML = '';
+    if (!spots) { layer.innerHTML = ''; return; }
+
+    const w = wrap.clientWidth || 600;
+    const size = Math.max(14, Math.min(34, w * 0.04));
+    const groups = spots.map(() => []);
+    collectTokens().forEach(t => groups[t.space].push(t));
+
+    let html = '';
+    groups.forEach((list, i) => {
+      const n = list.length;
+      const radius = n <= 1 ? 0 : size * (0.35 + 0.08 * n);
+      list.forEach((t, j) => {
+        const ang = -Math.PI / 2 + (2 * Math.PI * j) / n;
+        const dx = (radius * Math.cos(ang)).toFixed(1);
+        const dy = (radius * Math.sin(ang)).toFixed(1);
+        html += '<div class="ptok" title="' + esc(t.title) + '" style="left:' + spots[i][0] + '%;top:' + spots[i][1] + '%;' +
+          'width:' + size + 'px;height:' + size + 'px;' +
+          'transform:translate(-50%,-50%) translate(' + dx + 'px,' + dy + 'px);">' + t.svg + '</div>';
+      });
+    });
+    layer.innerHTML = html;
+    $('photoLegend').innerHTML = legendHTML();
+  }
+
+  function renderBoardArea() {
+    const mode = currentMode();
+    const hide = boardHidden && !calibrating;
+    $('photoBoard').classList.toggle('hidden', hide || mode !== 'photo');
+    $('imgError').classList.toggle('hidden', hide || !(mode === 'photo' && imgFailed));
+    $('board').classList.toggle('hidden', hide || mode !== 'drawn');
+    $('photoLegend').classList.toggle('hidden', hide || mode !== 'photo' || calibrating || !spots);
+    $('calibBar').classList.toggle('hidden', !calibrating);
+    $('boardExtra').classList.toggle('hidden', hide);
+
+    const hideBtn = $('btnHideBoard');
+    hideBtn.textContent = hide ? '👁 Show board' : '🙈 Hide board';
+    hideBtn.disabled = calibrating;
+
+    const toggle = $('btnToggleBoard');
+    toggle.textContent = mode === 'photo' ? 'Show drawn board' : 'Show photo board';
+    toggle.disabled = calibrating;
+
+    if (hide) return;
+    if (mode === 'photo') renderPhotoBoard();
+    else renderBoard();
+  }
+
+  window.addEventListener('resize', () => {
+    if (state.started && currentMode() === 'photo') renderPhotoBoard();
+  });
+
+  /* ---------- Player cards + results ---------- */
+
+  function playerTotal(p) { return p.meeple + p.messenger; }
+
+  function catBreakdownHTML(p) {
+    const total = playerTotal(p);
+    const unassigned = total - CAT_ORDER.reduce((s, k) => s + p.cats[k], 0);
+    const parts = CAT_ORDER.filter(k => p.cats[k] > 0).map(k => ({ k, v: p.cats[k], c: CATS[k].color, l: CATS[k].icon + ' ' + CATS[k].label }));
+    if (unassigned > 0) parts.push({ k: 'un', v: unassigned, c: '#4b5563', l: 'Unassigned' });
+    const sum = parts.reduce((s, x) => s + x.v, 0);
+    if (!sum) return '<div class="cat-chips"><span class="chip" style="color:var(--muted);">No points yet</span></div>';
+    const bar = '<div class="cat-bar">' + parts.map(x => '<span title="' + esc(x.l) + ' ' + x.v + '" style="width:' + (x.v / sum * 100).toFixed(1) + '%;background:' + x.c + '"></span>').join('') + '</div>';
+    const chips = '<div class="cat-chips">' + parts.map(x => '<span class="chip"><i style="background:' + x.c + '"></i>' + esc(x.l) + ' ' + x.v + '</span>').join('') + '</div>';
+    return bar + chips;
+  }
+
+  function playerCardHTML(p) {
+    const twoTracks = exp('messengers') && !state.finalScoring;
+    const total = playerTotal(p);
+    const robbersOn = piece => exp('robbers')
+      ? state.players.filter(t => t.robberTarget && t.robberTarget.playerId === p.id && t.robberTarget.piece === piece)
+      : [];
+    const robberTags = piece => robbersOn(piece).map(t => '<span class="robber-tag">🦹 ' + esc(t.name) + "'s Robber here</span>").join('');
+    const dark = v => (exp('messengers') && !state.finalScoring && v % 5 === 0) ? '<span class="dark-tag">DARK</span>' : '';
+
+    let robberStatusHTML = '';
+    if (exp('robbers')) {
+      if (p.robberTarget) {
+        const victim = state.players.find(v => v.id === p.robberTarget.playerId);
+        const targetLabel = twoTracks ? p.robberTarget.piece : 'Score';
+        robberStatusHTML =
+          '<div class="robber-status"><span style="color:#fca5a5;">🦹 Robbing <strong>' + esc(victim ? victim.name : '?') + '</strong> (' + targetLabel + ')</span>' +
+          '<button class="secondary" style="padding:3px 8px; font-size:0.75rem;" onclick="recallRobber(\'' + p.id + '\')">Recall</button></div>';
+      } else {
+        robberStatusHTML =
+          '<div class="robber-status"><span style="color:var(--muted);">🦹 Robber in supply</span>' +
+          '<button class="danger" style="padding:3px 8px; font-size:0.75rem;" onclick="openRobberModal(\'' + p.id + '\')">Place Robber</button></div>';
+      }
+    }
+
+    const meepleLabel = state.finalScoring ? 'Combined Score' : (twoTracks ? 'Meeple Track' : 'Score Track');
+    const meepleRow =
+      '<div class="piece-row"><div class="piece-info">' +
+      '<span class="piece-label">' + meepleLabel + '</span>' +
+      '<div><span class="piece-score">' + p.meeple + '</span>' + dark(p.meeple) + '</div>' +
+      robberTags('meeple') + '</div></div>';
+
+    const messengerRow = !twoTracks ? '' :
+      '<div class="piece-row"><div class="piece-info">' +
+      '<span class="piece-label">Messenger Track</span>' +
+      '<div><span class="piece-score">' + p.messenger + '</span>' + dark(p.messenger) + '</div>' +
+      robberTags('messenger') + '</div></div>';
+
+    let goodsRow = '';
+    if (exp('traders')) {
+      goodsRow = '<div class="piece-row"><span class="piece-label">Trade goods</span><div class="goods">' +
+        GOODS.map(g =>
+          '<span class="good" title="' + g.label + '">' + g.icon +
+          '<button class="mini" ' + (state.finalScoring ? 'disabled ' : '') + 'onclick="adjGood(\'' + p.id + '\',\'' + g.id + '\',-1)">−</button>' +
+          '<b>' + p.goods[g.id] + '</b>' +
+          '<button class="mini" ' + (state.finalScoring ? 'disabled ' : '') + 'onclick="adjGood(\'' + p.id + '\',\'' + g.id + '\',1)">+</button></span>'
+        ).join('') + '</div></div>';
+    }
+
+    let goldRow = '';
+    if (exp('gold')) {
+      goldRow = '<div class="piece-row"><span class="piece-label">🪙 Gold bars <small>(' + goldPerBar(p.gold) + ' each = ' + goldPoints(p.gold) + ' pts at end)</small></span><span class="good">' +
+        '<button class="mini" ' + (state.finalScoring ? 'disabled ' : '') + 'onclick="adjGold(\'' + p.id + '\',-1)">−</button>' +
+        '<b>' + p.gold + '</b>' +
+        '<button class="mini" ' + (state.finalScoring ? 'disabled ' : '') + 'onclick="adjGold(\'' + p.id + '\',1)">+</button></span></div>';
+    }
+
+    const isTurn = twoTracks && state.players[state.turn] && state.players[state.turn].id === p.id;
+    return '<div class="player-card' + (isTurn ? ' turn' : '') + '" style="border-color:' + p.color + '">' +
+      '<div class="player-header">' +
+      '<div class="player-name"><span class="dot" style="background:' + p.color + '"></span>' + esc(p.name) + (isTurn ? '<span class="turn-tag">TURN</span>' : '') + '</div>' +
+      '<div class="total-badge">' + total + '</div></div>' +
+      meepleRow + messengerRow + catBreakdownHTML(p) + goodsRow + goldRow + robberStatusHTML +
+      '</div>';
+  }
+
+  function resultsHTML() {
+    const rows = state.players.map(p => {
+      const total = playerTotal(p);
+      const cats = {};
+      CAT_ORDER.forEach(k => cats[k] = p.cats[k]);
+      cats.un = total - CAT_ORDER.reduce((s, k) => s + p.cats[k], 0);
+      return { p, total, cats };
+    }).sort((a, b) => b.total - a.total);
+
+    const cols = CAT_ORDER.filter(k => rows.some(r => r.cats[k] !== 0));
+    const showUn = rows.some(r => r.cats.un !== 0);
+    const top = rows.length ? rows[0].total : 0;
+
+    let h = '<h3>' + (state.finalScoring ? '🏆 Results' : 'Points by source') + '</h3><table><thead><tr><th>Player</th><th>Total</th>' +
+      cols.map(k => '<th title="' + CATS[k].label + '">' + CATS[k].icon + ' ' + CATS[k].label + '</th>').join('') +
+      (showUn ? '<th>Unassigned</th>' : '') + '</tr></thead><tbody>';
+    rows.forEach(r => {
+      const win = state.finalScoring && r.total === top && top > 0;
+      h += '<tr class="' + (win ? 'win' : '') + '"><td><span class="dot" style="background:' + r.p.color + '"></span> ' + (win ? '🏆 ' : '') + esc(r.p.name) + '</td>' +
+        '<td class="tot">' + r.total + '</td>' +
+        cols.map(k => '<td>' + (r.cats[k] || '–') + '</td>').join('') +
+        (showUn ? '<td>' + (r.cats.un || '–') + '</td>' : '') + '</tr>';
+    });
+    return h + '</tbody></table>';
+  }
+
+  /* ---------- Main render ---------- */
+
+  function render() {
+    const setupView = $('setupView');
+    const gameView = $('gameView');
+
+    if (!state.started) {
+      setupView.classList.remove('hidden');
+      gameView.classList.add('hidden');
+      $('btnFinalPhase').classList.add('hidden');
+      $('btnExp').classList.add('hidden');
+      $('setupPlayerList').innerHTML = state.players.map(p =>
+        '<div style="background:var(--bg); padding:6px 12px; border-radius:20px; border:1px solid var(--border); display:flex; align-items:center; gap:8px;">' +
+        '<span class="dot" style="background:' + p.color + '"></span>' +
+        '<span>' + esc(p.name) + '</span>' +
+        '<span style="cursor:pointer; color:var(--robber); font-weight:bold;" onclick="removeSetupPlayer(\'' + p.id + '\')">×</span>' +
+        '</div>'
+      ).join('');
+      $('expPickerSetup').innerHTML = expPickerHTML();
+      return;
+    }
+
+    setupView.classList.add('hidden');
+    gameView.classList.remove('hidden');
+    $('btnFinalPhase').classList.remove('hidden');
+    $('btnFinalPhase').disabled = state.finalScoring;
+    $('btnExp').classList.remove('hidden');
+    $('phaseNotice').classList.toggle('hidden', !state.finalScoring);
+    $('expPickerGame').innerHTML = expPickerHTML();
+
+    // Score panel controls
+    const twoTracks = exp('messengers') && !state.finalScoring;
+    $('scorePiece').classList.toggle('hidden', !twoTracks);
+    $('turnBar').classList.toggle('hidden', !twoTracks);
+    if (twoTracks && state.players[state.turn]) $('turnName').textContent = state.players[state.turn].name;
+
+    const playerSelect = $('scorePlayer');
+    const prevPlayer = playerSelect.value;
+    playerSelect.innerHTML = state.players.map(p => '<option value="' + p.id + '">' + esc(p.name) + '</option>').join('');
+    if (prevPlayer && state.players.some(p => p.id === prevPlayer)) playerSelect.value = prevPlayer;
+
+    const pieceSelect = $('scorePiece');
+    const prevPiece = pieceSelect.value;
+    pieceSelect.innerHTML = '<option value="meeple">Move Meeple</option><option value="messenger">Move Messenger</option>';
+    if (prevPiece === 'messenger' || prevPiece === 'meeple') pieceSelect.value = prevPiece;
+
+    const catSelect = $('scoreCat');
+    const prevCat = catSelect.value;
+    const avail = availableCats();
+    catSelect.innerHTML = avail.map(k => '<option value="' + k + '">' + CATS[k].icon + ' ' + CATS[k].label + '</option>').join('');
+    if (avail.indexOf(prevCat) !== -1) catSelect.value = prevCat;
+
+    if (!$('helper').classList.contains('hidden')) helperRefresh();
+
+    renderBoardArea();
+
+    $('playerGrid').innerHTML = state.players.map(playerCardHTML).join('');
+    $('results').innerHTML = resultsHTML();
+    $('gameLog').innerHTML = state.logs.map(l => '<div>' + esc(l) + '</div>').join('');
+  }
+
+  render();
+</script>
+</body>
+</html>
