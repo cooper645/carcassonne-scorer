@@ -31,7 +31,7 @@
 | The Messengers | Second track and dark-space Message draws |
 | The Ferries | No scoring, nothing tracked |
 | The Gold Mines | 🪙Gold bar counter, added at Final Scoring |
-| Magician & Witch | Manual +/- adjustment source |
+| Magician & Witch | Mage (+1 per tile) and Witch (halves, rounded up) options in the Score helper for cities and roads, plus a manual +/- source |
 | The Robbers | 🦹Robber placement and point stealing |
 | The Crop Circles | No scoring, nothing tracked |
 
